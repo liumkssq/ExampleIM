@@ -54,7 +54,6 @@ func (l *RegisterLogic) Register(in *user.RegisterReq) (*user.RegisterResp, erro
 			Valid: true,
 		},
 	}
-
 	//todo 密码加密
 	if len(in.Password) > 0 {
 		genPasswod, err := encrypt.GenPasswordHash([]byte(in.Password))
