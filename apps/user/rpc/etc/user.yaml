@@ -1,0 +1,18 @@
+Name: user.rpc
+ListenOn: 0.0.0.0:8080
+Etcd:
+  Hosts:
+  - 127.0.0.1:12379
+  Key: user.rpc
+
+Mysql:
+  DataSource: root:easy-chat@tcp(127.0.0.1:13306)/easy_chat?charset=utf8mb4
+
+Cache:
+  - Host: 127.0.0.1:16379
+    Type: node
+    Pass: easy-chat
+
+Jwt:
+  AccessSecret: imooc.com
+  AccessExpire: 8640000
