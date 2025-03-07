@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/zeromicro/go-zero/core/stores/cache"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/stores/builder"
@@ -119,6 +120,13 @@ func (m *defaultGroupsModel) Update(ctx context.Context, data *Groups) error {
 		return conn.ExecCtx(ctx, query, data.Name, data.Icon, data.Status, data.CreatorUid, data.GroupType, data.IsVerify, data.Notification, data.NotificationUid, data.CreatedAt, data.UpdatedAt, data.Id)
 	}, groupsIdKey)
 	return err
+}
+
+func newGroupsModel(conn sqlx.SqlConn, c cache.CacheConf) *defaultGroupsModel {
+	return &defaultGroupsModel{
+		CachedConn: sqlc.NewConn(conn, c),
+		table:      "`groups`",
+	}
 }
 
 func (m *defaultGroupsModel) formatPrimary(primary any) string {

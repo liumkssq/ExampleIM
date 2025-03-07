@@ -66,7 +66,7 @@ func (m *defaultFriendRequestsModel) FindOne(ctx context.Context, id int64) (*Fr
 	friendRequestIdKey := fmt.Sprintf("%s%v", cacheEasyChatFriendRequestsIdPrefix, id)
 	var resp FriendRequests
 	err := m.QueryRowCtx(ctx, &resp, friendRequestIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
-		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", friendRequestsRows, m.table)
+		query := fmt.Sprintf("select `id`, `user_id`, `req_uid`, `req_msg`, CONVERT_TZ(`req_time`, @@session.time_zone, '+00:00') as `req_time`, `handle_result`, `handle_msg`, CONVERT_TZ(`handled_at`, @@session.time_zone, '+00:00') as `handled_at` from %s where `id` = ? limit 1", m.table)
 		return conn.QueryRowCtx(ctx, v, query, id)
 	})
 	switch err {
@@ -80,9 +80,9 @@ func (m *defaultFriendRequestsModel) FindOne(ctx context.Context, id int64) (*Fr
 }
 
 func (m *defaultFriendRequestsModel) FindByReqUidAndUserId(ctx context.Context, rid, uid string) (*FriendRequests, error) {
-	query := fmt.Sprintf("select %  from %s where `req_uid` = ? and `user_id` = ?", friendRequestsRows, m.table)
+	query := fmt.Sprintf("select `id`, `user_id`, `req_uid`, `req_msg`, CONVERT_TZ(`req_time`, @@session.time_zone, '+00:00') as `req_time`, `handle_result`, `handle_msg`, CONVERT_TZ(`handled_at`, @@session.time_zone, '+00:00') as `handled_at` from %s where `req_uid` = ? and `user_id` = ? limit 1", m.table)
 	var resp FriendRequests
-	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, rid, uid)
+	err := m.QueryRowNoCacheCtx(ctx, &resp, query, rid, uid)
 	switch err {
 	case nil:
 		return &resp, nil
@@ -94,7 +94,7 @@ func (m *defaultFriendRequestsModel) FindByReqUidAndUserId(ctx context.Context, 
 }
 
 func (m *defaultFriendRequestsModel) ListNoHandler(ctx context.Context, userId string) ([]*FriendRequests, error) {
-	query := fmt.Sprintf("select %s from %s were `handle_result` = 1 and `user_id` = ?", friendRequestsRows, m.table)
+	query := fmt.Sprintf("select `id`, `user_id`, `req_uid`, `req_msg`, CONVERT_TZ(`req_time`, @@session.time_zone, '+00:00') as `req_time`, `handle_result`, `handle_msg`, CONVERT_TZ(`handled_at`, @@session.time_zone, '+00:00') as `handled_at` from %s where `handle_result` = 1 and `user_id` = ?", m.table)
 	var resp []*FriendRequests
 	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, userId)
 	switch err {

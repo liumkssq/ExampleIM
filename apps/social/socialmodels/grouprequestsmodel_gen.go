@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/zeromicro/go-zero/core/stores/cache"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/stores/builder"
@@ -55,6 +56,12 @@ type (
 	}
 )
 
+func newGroupRequestsModel(conn sqlx.SqlConn, c cache.CacheConf) *defaultGroupRequestsModel {
+	return &defaultGroupRequestsModel{
+		CachedConn: sqlc.NewConn(conn, c),
+		table:      "`group_requests`",
+	}
+}
 func (m *defaultGroupRequestsModel) Trans(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
 	return m.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
 		return fn(ctx, session)

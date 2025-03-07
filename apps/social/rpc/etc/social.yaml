@@ -6,7 +6,7 @@ Etcd:
   Key: social.rpc
 
 Mysql:
-  DataSource: root:easy-chat@tcp(127.0.0.1:13306)/easy_chat?charset=utf8mb4
+  DataSource: root:easy-chat@tcp(127.0.0.1:13306)/easy_chat?charset=utf8mb4&parseTime=true&loc=Local
 
 Cache:
   - Host: 127.0.0.1:16379

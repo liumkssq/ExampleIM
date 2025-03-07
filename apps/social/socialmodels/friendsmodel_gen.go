@@ -52,30 +52,87 @@ type (
 	}
 )
 
+func newFriendsModel(conn sqlx.SqlConn, c cache.CacheConf) *defaultFriendsModel {
+	return &defaultFriendsModel{
+		CachedConn: sqlc.NewConn(conn, c),
+		table:      "`friends`",
+	}
+}
+
+func (m *defaultFriendsModel) Delete(ctx context.Context, id int64) error {
+	friendsIdKey := fmt.Sprintf("%s%v", cacheEasyChatFriendsIdPrefix, id)
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
+		return conn.ExecCtx(ctx, query, id)
+	}, friendsIdKey)
+	return err
+}
+
+func (m *defaultFriendsModel) FindOne(ctx context.Context, id int64) (*Friends, error) {
+	friendsIdKey := fmt.Sprintf("%s%v", cacheEasyChatFriendsIdPrefix, id)
+	var resp Friends
+	err := m.QueryRowCtx(ctx, &resp, friendsIdKey, func(ctx context.Context, conn sqlx.SqlConn, v interface{}) error {
+		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", friendsRows, m.table)
+		return conn.QueryRowCtx(ctx, v, query, id)
+	})
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
+func (m *defaultFriendsModel) Insert(ctx context.Context, data *Friends) (sql.Result, error) {
+	friendsIdKey := fmt.Sprintf("%s%v", cacheEasyChatFriendsIdPrefix, data.Id)
+	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?)", m.table, friendsRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.UserId, data.FriendUid, data.Remark, data.AddSource, data.CreatedAt)
+	}, friendsIdKey)
+	return ret, err
+}
+
 func (m *defaultFriendsModel) Inserts(ctx context.Context, session sqlx.Session, data ...*Friends) (sql.Result, error) {
 	var (
 		sql  strings.Builder
 		args []any
 	)
+
 	if len(data) == 0 {
 		return nil, nil
 	}
-	sql.WriteString(fmt.Sprintf("insert into %s (%s) values", m.table, friendsRowsExpectAutoSet))
+
+	// insert into tablename values(数据), (数据)
+	sql.WriteString(fmt.Sprintf("insert into %s (%s) values ", m.table, friendsRowsExpectAutoSet))
+
 	for i, v := range data {
 		sql.WriteString("(?, ?, ?, ?, ?)")
 		args = append(args, v.UserId, v.FriendUid, v.Remark, v.AddSource, v.CreatedAt)
 		if i == len(data)-1 {
 			break
 		}
+
 		sql.WriteString(",")
 	}
+
 	return session.ExecCtx(ctx, sql.String(), args...)
 }
 
+func (m *defaultFriendsModel) Update(ctx context.Context, data *Friends) error {
+	friendsIdKey := fmt.Sprintf("%s%v", cacheEasyChatFriendsIdPrefix, data.Id)
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, friendsRowsWithPlaceHolder)
+		return conn.ExecCtx(ctx, query, data.UserId, data.FriendUid, data.Remark, data.AddSource, data.CreatedAt, data.Id)
+	}, friendsIdKey)
+	return err
+}
+
 func (m *defaultFriendsModel) FindByUidAndFid(ctx context.Context, uid, fid string) (*Friends, error) {
-	query := fmt.Sprintf("select %s from %s where `user_id` = ? and `friend_uid` = ?", friendsRows, m.table)
+	query := fmt.Sprintf("select %s from %s where `user_id` = ? and `friend_uid` = ? limit 1", friendsRows, m.table)
 	var resp Friends
-	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, uid, fid)
+	err := m.QueryRowNoCacheCtx(ctx, &resp, query, uid, fid)
 	switch err {
 	case nil:
 		return &resp, nil
@@ -97,57 +154,6 @@ func (m *defaultFriendsModel) ListByUserid(ctx context.Context, userId string) (
 	default:
 		return nil, err
 	}
-}
-
-func newFriendsModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) *defaultFriendsModel {
-	return &defaultFriendsModel{
-		CachedConn: sqlc.NewConn(conn, c, opts...),
-		table:      "`friends`",
-	}
-}
-
-func (m *defaultFriendsModel) Delete(ctx context.Context, id uint64) error {
-	easyChatFriendsIdKey := fmt.Sprintf("%s%v", cacheEasyChatFriendsIdPrefix, id)
-	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
-		return conn.ExecCtx(ctx, query, id)
-	}, easyChatFriendsIdKey)
-	return err
-}
-
-func (m *defaultFriendsModel) FindOne(ctx context.Context, id uint64) (*Friends, error) {
-	easyChatFriendsIdKey := fmt.Sprintf("%s%v", cacheEasyChatFriendsIdPrefix, id)
-	var resp Friends
-	err := m.QueryRowCtx(ctx, &resp, easyChatFriendsIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
-		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", friendsRows, m.table)
-		return conn.QueryRowCtx(ctx, v, query, id)
-	})
-	switch err {
-	case nil:
-		return &resp, nil
-	case sqlc.ErrNotFound:
-		return nil, ErrNotFound
-	default:
-		return nil, err
-	}
-}
-
-func (m *defaultFriendsModel) Insert(ctx context.Context, data *Friends) (sql.Result, error) {
-	easyChatFriendsIdKey := fmt.Sprintf("%s%v", cacheEasyChatFriendsIdPrefix, data.Id)
-	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?)", m.table, friendsRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.UserId, data.FriendUid, data.Remark, data.AddSource)
-	}, easyChatFriendsIdKey)
-	return ret, err
-}
-
-func (m *defaultFriendsModel) Update(ctx context.Context, data *Friends) error {
-	easyChatFriendsIdKey := fmt.Sprintf("%s%v", cacheEasyChatFriendsIdPrefix, data.Id)
-	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, friendsRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.UserId, data.FriendUid, data.Remark, data.AddSource, data.Id)
-	}, easyChatFriendsIdKey)
-	return err
 }
 
 func (m *defaultFriendsModel) formatPrimary(primary any) string {
