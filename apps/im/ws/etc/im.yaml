@@ -11,4 +11,4 @@ Mongo:
 MsgChatTransfer:
   Topic: msgChatTransfer
   Addrs:
-    - 127.0.0.1:9093
+    - 127.0.0.1:9094

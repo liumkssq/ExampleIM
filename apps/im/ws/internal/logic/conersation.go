@@ -5,6 +5,7 @@ import (
 	"github.com/liumkssq/easy-chat/apps/im/immodels"
 	"github.com/liumkssq/easy-chat/apps/im/ws/internal/svc"
 	"github.com/liumkssq/easy-chat/apps/im/ws/websocket"
+	"github.com/liumkssq/easy-chat/apps/im/ws/ws"
 	"github.com/liumkssq/easy-chat/pkg/wuid"
 	"time"
 )

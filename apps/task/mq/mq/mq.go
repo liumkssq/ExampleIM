@@ -8,7 +8,6 @@ type MsgChatTransfer struct {
 	SendId             string `json:"sendId"`
 	RecvId             string `json:"recvId"`
 	SendTime           int64  `json:"sendTime"`
-
-	constants.MType `json:"mType"`
-	Content         string `json:"content"`
+	constants.MType    `json:"mType"`
+	Content            string `json:"content"`
 }
