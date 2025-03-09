@@ -97,6 +97,7 @@ func (c *Conn) keepalive() {
 	}()
 	for {
 		select {
+		// The connection has been idle for a duration of keepalive.MaxConnectionIdle or more.
 		case <-idleTimer.C:
 			c.idleMu.Lock()
 			idle := c.idle
@@ -114,6 +115,9 @@ func (c *Conn) keepalive() {
 				c.s.Close(c)
 				return
 			}
+			idleTimer.Reset(val)
+		case <-c.done:
+			return
 		}
 	}
 }

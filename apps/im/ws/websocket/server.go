@@ -43,11 +43,19 @@ type Server struct {
 	logx.Logger
 }
 
-func NewServer(addr string) *Server {
+func NewServer(addr string, opts ...ServerOptions) *Server {
+	opt := newServerOption(opts...)
 	return &Server{
-		addr:     addr,
-		upgrader: websocket.Upgrader{},
-		Logger:   logx.WithContext(context.Background()),
+		routes:         make(map[string]HandlerFunc),
+		addr:           addr,
+		pattern:        opt.pattern,
+		opt:            &opt,
+		upgrader:       websocket.Upgrader{},
+		Logger:         logx.WithContext(context.Background()),
+		authentication: opt.Authentication,
+
+		connToUser: make(map[*Conn]string),
+		userToConn: make(map[string]*Conn),
 	}
 }
 
