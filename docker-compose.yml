@@ -43,10 +43,26 @@ services:
       - easy-chat
     command: redis-server --requirepass easy-chat --appendonly yes
 
+  mongo:
+    image: mongo:4.0
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: easy-chat
+    ports:
+      - "47017:27017"
+    volumes:
+      - ./components/mongo/data:/data/db
+      - /etc/localtime:/etc/localtime
+    restart: always
+    networks:
+      - easy-chat
+
 volumes:
   etcd_data:
   mysql_data:
   redis_data:
+  mongo_data:
 
 networks:
   easy-chat:

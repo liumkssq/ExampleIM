@@ -1,17 +1,11 @@
-/**
- * @author: dn-jinmin/dn-jinmin
- * @doc:
- */
-
 package logic
 
 import (
 	"context"
-	"imooc.com/easy-chat/apps/im/immodels"
-	"imooc.com/easy-chat/apps/im/ws/internal/svc"
-	"imooc.com/easy-chat/apps/im/ws/websocket"
-	"imooc.com/easy-chat/apps/im/ws/ws"
-	"imooc.com/easy-chat/pkg/wuid"
+	"github.com/liumkssq/easy-chat/apps/im/immodels"
+	"github.com/liumkssq/easy-chat/apps/im/ws/internal/svc"
+	"github.com/liumkssq/easy-chat/apps/im/ws/websocket"
+	"github.com/liumkssq/easy-chat/pkg/wuid"
 	"time"
 )
 

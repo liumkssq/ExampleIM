@@ -7,6 +7,7 @@ import (
 
 func Chat(svc *svc.ServiceContext) websocket.HandlerFunc {
 	return func(srv *websocket.Server, conn *websocket.Conn, msg *websocket.Message) {
+		//var data types.Chat
 		//var data ws.Chat
 		//todo
 		//srv.SendByUserId(server.NewMessage)
