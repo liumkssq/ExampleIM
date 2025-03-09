@@ -1,0 +1,333 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "im消息服务",
+    "version": "1.0.0"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/im/chatlog": {
+      "get": {
+        "summary": "根据用户获取聊天记录",
+        "operationId": "getChatLog",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ChatLogResp"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "conversationId",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "startSendTime",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "endSendTime",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "im"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/im/conversation": {
+      "get": {
+        "summary": "获取会话",
+        "operationId": "getConversations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/GetConversationsResp"
+            }
+          }
+        },
+        "tags": [
+          "im"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "更新会话",
+        "operationId": "putConversations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/PutConversationsResp"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PutConversationsReq"
+            }
+          }
+        ],
+        "tags": [
+          "im"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/im/setup/conversation": {
+      "post": {
+        "summary": "建立会话",
+        "operationId": "setUpUserConversation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/setUpUserConversationResp"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SetUpUserConversationReq"
+            }
+          }
+        ],
+        "tags": [
+          "im"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ChatLog": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "conversationId": {
+          "type": "string"
+        },
+        "sendId": {
+          "type": "string"
+        },
+        "recvId": {
+          "type": "string"
+        },
+        "msgType": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msgContent": {
+          "type": "string"
+        },
+        "chatType": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "sendTime": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "ChatLog"
+    },
+    "ChatLogReq": {
+      "type": "object",
+      "properties": {
+        "conversationId": {
+          "type": "string"
+        },
+        "startSendTime": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "endSendTime": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "ChatLogReq",
+      "required": [
+        "conversationId"
+      ]
+    },
+    "ChatLogResp": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ChatLog"
+          }
+        }
+      },
+      "title": "ChatLogResp",
+      "required": [
+        "list"
+      ]
+    },
+    "Conversation": {
+      "type": "object",
+      "properties": {
+        "conversationId": {
+          "type": "string"
+        },
+        "chatType": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "targetId": {
+          "type": "string"
+        },
+        "isShow": {
+          "type": "boolean"
+        },
+        "seq": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "read": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "unread": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "Conversation"
+    },
+    "GetConversationsReq": {
+      "type": "object",
+      "title": "GetConversationsReq"
+    },
+    "GetConversationsResp": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "conversationList": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Conversation"
+          }
+        }
+      },
+      "title": "GetConversationsResp",
+      "required": [
+        "userId",
+        "conversationList"
+      ]
+    },
+    "PutConversationsReq": {
+      "type": "object",
+      "properties": {
+        "conversationList": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Conversation"
+          }
+        }
+      },
+      "title": "PutConversationsReq",
+      "required": [
+        "conversationList"
+      ]
+    },
+    "PutConversationsResp": {
+      "type": "object",
+      "title": "PutConversationsResp"
+    },
+    "SetUpUserConversationReq": {
+      "type": "object",
+      "properties": {
+        "sendId": {
+          "type": "string"
+        },
+        "recvId": {
+          "type": "string"
+        },
+        "chatType": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "SetUpUserConversationReq"
+    },
+    "setUpUserConversationResp": {
+      "type": "object",
+      "title": "setUpUserConversationResp"
+    }
+  },
+  "securityDefinitions": {
+    "apiKey": {
+      "type": "apiKey",
+      "description": "Enter JWT Bearer token **_only_**",
+      "name": "Authorization",
+      "in": "header"
+    }
+  }
+}
