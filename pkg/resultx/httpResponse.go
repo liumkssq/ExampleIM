@@ -7,6 +7,7 @@ package resultx
 
 import (
 	"context"
+	"github.com/liumkssq/easy-chat/pkg/xerr"
 	"github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/logx"
 	zrpcErr "github.com/zeromicro/x/errors"

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/liumkssq/easy-chat/pkg/interceptor/rpcserver"
 
 	"github.com/liumkssq/easy-chat/apps/im/rpc/im"
 	"github.com/liumkssq/easy-chat/apps/im/rpc/internal/config"
@@ -32,6 +33,7 @@ func main() {
 			reflection.Register(grpcServer)
 		}
 	})
+	s.AddUnaryInterceptors(rpcserver.LogInterceptor)
 	defer s.Stop()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)

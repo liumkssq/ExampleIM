@@ -4,8 +4,10 @@ import (
 	"github.com/liumkssq/easy-chat/apps/im/ws/internal/svc"
 	"github.com/liumkssq/easy-chat/apps/im/ws/websocket"
 	"github.com/liumkssq/easy-chat/apps/im/ws/ws"
+	"github.com/liumkssq/easy-chat/apps/task/mq/mq"
 	"github.com/liumkssq/easy-chat/pkg/constants"
 	"github.com/mitchellh/mapstructure"
+	"time"
 )
 
 func Chat(svc *svc.ServiceContext) websocket.HandlerFunc {
@@ -17,15 +19,19 @@ func Chat(svc *svc.ServiceContext) websocket.HandlerFunc {
 		}
 		switch data.ChatType {
 		case constants.SingleChatType:
-			//err := svc.MsgChatTransferClient.Push(&mq.MsgChatTransfer{
-			//	ConversationId: data.ConversationId,
-			//	ChatType:       data.ChatType,
-			//	SendId:         conn.Uid,
-			//	RecvId:         data.RecvId,
-			//	SendTime:       time.Now().UnixNano(),
-			//	MType:          data.Msg.MType,
-			//	Content:        data.Msg.Content,
-			//})
+			err := svc.MsgChatTransferClient.Push(&mq.MsgChatTransfer{
+				ConversationId: data.ConversationId,
+				ChatType:       data.ChatType,
+				SendId:         conn.Uid,
+				RecvId:         data.RecvId,
+				SendTime:       time.Now().UnixNano(),
+				MType:          data.Msg.MType,
+				Content:        data.Msg.Content,
+			})
+			if err != nil {
+				srv.Send(websocket.NewErrMessage(err), conn)
+				return
+			}
 		}
 	}
 }
