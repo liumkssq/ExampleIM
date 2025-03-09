@@ -45,7 +45,6 @@ services:
 
   mongo:
     image: mongo:4.0
-    container_name: mongo
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: easy-chat
@@ -54,7 +53,7 @@ services:
     volumes:
       - ./components/mongo/data:/data/db
       - /etc/localtime:/etc/localtime
-#    restart: always
+    #    restart: always
     networks:
       - easy-chat
   kafka:
@@ -79,6 +78,73 @@ services:
       - kafka_data:/bitnami/kafka
     networks:
       - easy-chat
+  jeager:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "9411:9411"
+    networks:
+      - easy-chat
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "xpack.security.enabled=false"
+      - "ES_JAVA_OPTS=-Xms84m -Xmx512m"
+    ports:
+      - "9200:9200"
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.13.0
+    volumes:
+      - ./components/logstash:/usr/share/logstash/pipeline
+      - ./components/logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      #      - ./logstash-logs:/usr/share/logstash/logs
+      #      - ./app.log:/usr/share/logstash/app.log
+      - ./components/logstash/log/comment.log:/usr/share/logstash/comment.log
+    environment:
+      - "xpack.monitoring.elasticsearch.hosts=http://elasticsearch:9200"
+    ports:
+      - 5044:5044
+
+  kibana:
+    #    注意检查你的 ElasticSearch 版本，这边我将 ES 也改到了这个版本
+    image: docker.elastic.co/kibana/kibana:7.13.0
+    volumes:
+      - ./components/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - i18n.locale=zh-CN
+    ports:
+      - "5601:5601"
+  prometheus:
+    image: prom/prometheus:v2.47.2
+    volumes:
+      #      - 将本地的 prometheus 文件映射到容器内的配置文件
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      #      - 访问数据的端口
+      - 9090:9090
+    command:
+      - "--web.enable-remote-write-receiver"
+      - "--config.file=/etc/prometheus/prometheus.yml"
+  grafana:
+    image: grafana/grafana-enterprise:10.2.0
+    ports:
+      - 3000:3000
+  zipkin:
+    #    用的是不支持 Kafka 之类的简化版本
+    image: openzipkin/zipkin-slim:2.24
+    ports:
+      - '9411:9411'
 
 volumes:
   etcd_data:
@@ -86,6 +152,7 @@ volumes:
   redis_data:
   mongo_data:
   kafka_data:
+
 
 networks:
   easy-chat:
