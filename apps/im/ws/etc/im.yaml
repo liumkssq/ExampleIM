@@ -5,10 +5,10 @@ JwtAuth:
   AccessSecret: imooc.com
 
 Mongo:
-  Url: "mongodb://root:easy-chat@192.168.117.24:47017"
+  Url: "mongodb://root:easy-chat@127.0.0.1:47017"
   Db: easy-chat
 
 MsgChatTransfer:
   Topic: msgChatTransfer
   Addrs:
-    - 192.168.117.24:9092
+    - 127.0.0.1:9093
