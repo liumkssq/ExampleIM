@@ -47,3 +47,55 @@ components
 ### 依赖缓存 ###
 # Go modules 下载缓存（按需添加）
 # .go/
+
+# Binaries and object files
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go specific
+*.o
+*.a
+*.log
+
+# IDE specific
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Dependencies
+vendor/
+
+# Build and test artifacts
+**/cpu.prof
+**/mem.prof
+**/flame.svg
+coverage.txt
+
+# Environment files
+.env
+*.env
+
+# Docker volumes and data
+components/*/data/
+components/elasticsearch/data/
+components/mysql/data/
+components/redis/data/
+components/mongo/data/
+components/etcd/data/
+components/kibana/data/
+
+# Log files
+*.log
+components/logstash/log/
+
+# Temporary files
+tmp/
+temp/
