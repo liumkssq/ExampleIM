@@ -7,6 +7,7 @@ import (
 
 type Config struct {
 	zrpc.RpcServerConf
+	//TimeOut int
 	Mysql struct {
 		DataSource string
 	}

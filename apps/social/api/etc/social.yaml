@@ -14,5 +14,16 @@ UserRpc:
       - 127.0.0.1:12379
     Key: user.rpc
 
+ImRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:12379
+    Key: im.rpc
+
+Redisx:
+  Host: 127.0.0.1:16379
+  Type: node
+  Pass: easy-chat
+
 JwtAuth:
   AccessSecret: imooc.com
