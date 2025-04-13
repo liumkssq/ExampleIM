@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"fmt"
 	"github.com/liumkssq/easy-chat/apps/user/models"
 	"github.com/pkg/errors"
 
@@ -36,8 +37,10 @@ func (l *GetUserInfoLogic) GetUserInfo(in *user.GetUserInfoReq) (*user.GetUserIn
 		}
 		return nil, err
 	}
+	logx.Infof("userEntiy %v", userEntiy)
 	var resp user.UserEntity
 	_ = copier.Copy(&resp, userEntiy)
+	fmt.Printf("resp: %v", resp)
 
 	return &user.GetUserInfoResp{
 		User: &resp,

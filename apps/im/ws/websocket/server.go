@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
-	"github.com/zeromicro/go-zero/core/logx"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type AckType int
@@ -295,7 +296,7 @@ func (s *Server) AddRoutes(rs []Route) {
 }
 
 func (s *Server) GetUsers(conns ...*Conn) []string {
-	s.RWMutex.RLocker()
+	s.RWMutex.RLock()
 	defer s.RWMutex.RUnlock()
 	var res []string
 	if len(conns) == 0 {

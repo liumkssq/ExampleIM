@@ -10,6 +10,7 @@ type serverOption struct {
 	ackTimeout        time.Duration
 	pattern           string
 	maxConnectionIdle time.Duration
+	corsOrigins       []string
 }
 
 func newServerOption(opts ...ServerOptions) serverOption {
@@ -52,5 +53,11 @@ func WithServerAckTimeout(ackTimeout time.Duration) ServerOptions {
 func WithServerPatten(patten string) ServerOptions {
 	return func(opt *serverOption) {
 		opt.pattern = patten
+	}
+}
+
+func WithServerCors(origins ...string) ServerOptions {
+	return func(opt *serverOption) {
+		opt.corsOrigins = origins
 	}
 }
