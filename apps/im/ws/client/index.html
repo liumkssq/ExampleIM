@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExampleIM WebSocket客户端</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ExampleIM WebSocket客户端</h1>
+            <div class="upgrade-notice">
+                <p>我们现在有了更高级的客户端版本。 <a href="advanced/index.html">点击这里使用高级客户端</a></p>
+            </div>
+        </header>
+        
+        <div class="panel connection-panel">
+            <h2>连接设置</h2>
+            <div class="form-group">
+                <label for="serverUrl">服务器地址：</label>
+                <input type="text" id="serverUrl" value="ws://localhost:10090/ws">
+            </div>
+            <div class="form-group">
+                <label for="userId">用户ID：</label>
+                <input type="text" id="userId" placeholder="输入用户ID">
+            </div>
+            <div class="form-group">
+                <label for="token">JWT Token：</label>
+                <input type="text" id="token" placeholder="输入JWT Token">
+                <small style="display:block; margin-top:5px; color:#888;">注意：Token将作为 URL 查询参数传递（?token=xxx）</small>
+            </div>
+            <div class="button-group">
+                <button id="connectBtn">连接</button>
+                <button id="disconnectBtn" disabled>断开连接</button>
+            </div>
+            <div id="connectionStatus" class="status disconnected">未连接</div>
+        </div>
+        
+        <div class="panel chat-panel">
+            <h2>消息发送</h2>
+            <div class="form-group">
+                <label for="method">消息类型：</label>
+                <select id="method">
+                    <option value="user.online">用户上线</option>
+                    <option value="conversation.chat">私聊消息</option>
+                    <option value="push">推送消息</option>
+                </select>
+            </div>
+            
+            <div id="conversationForm" class="dynamic-form">
+                <div class="form-group">
+                    <label for="conversationId">会话ID：</label>
+                    <input type="text" id="conversationId" placeholder="输入会话ID">
+                </div>
+                <div class="form-group">
+                    <label for="chatType">聊天类型：</label>
+                    <select id="chatType">
+                        <option value="1">单聊</option>
+                        <option value="2">群聊</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="recvId">接收者ID：</label>
+                    <input type="text" id="recvId" placeholder="输入接收者ID">
+                </div>
+                <div class="form-group">
+                    <label for="messageType">消息类型：</label>
+                    <select id="messageType">
+                        <option value="text">文本</option>
+                        <option value="image">图片</option>
+                        <option value="video">视频</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="messageContent">消息内容：</label>
+                    <textarea id="messageContent" placeholder="输入消息内容"></textarea>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="sendMsgBtn" disabled>发送消息</button>
+            </div>
+        </div>
+        
+        <div class="panel message-panel">
+            <h2>消息记录 <button id="clearMsgBtn" class="small-btn">清除</button></h2>
+            <div id="messageList"></div>
+        </div>
+        
+        <div class="panel log-panel">
+            <h2>日志记录 <button id="clearLogBtn" class="small-btn">清除</button></h2>
+            <pre id="logArea"></pre>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExampleIM 客户端</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 登录/注册模块 -->
+    <div id="auth-container" class="auth-container">
+      <div class="auth-box">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="login">登录</button>
+          <button class="tab-btn" data-tab="register">注册</button>
+        </div>
+        
+        <div class="tab-content active" id="login-form">
+          <h2>用户登录</h2>
+          <form id="login-form-element">
+            <div class="form-group">
+              <label for="login-username">用户名</label>
+              <input type="text" id="login-username" required>
+            </div>
+            <div class="form-group">
+              <label for="login-password">密码</label>
+              <input type="password" id="login-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">登录</button>
+            <div class="form-error" id="login-error"></div>
+          </form>
+        </div>
+        
+        <div class="tab-content" id="register-form">
+          <h2>用户注册</h2>
+          <form id="register-form-element">
+            <div class="form-group">
+              <label for="register-username">用户名</label>
+              <input type="text" id="register-username" required>
+            </div>
+            <div class="form-group">
+              <label for="register-nickname">昵称</label>
+              <input type="text" id="register-nickname" required>
+            </div>
+            <div class="form-group">
+              <label for="register-password">密码</label>
+              <input type="password" id="register-password" required>
+            </div>
+            <div class="form-group">
+              <label for="register-confirm-password">确认密码</label>
+              <input type="password" id="register-confirm-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">注册</button>
+            <div class="form-error" id="register-error"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 主应用界面 -->
+    <div id="main-container" class="main-container hidden">
+      <!-- 左侧边栏：会话和联系人列表 -->
+      <div class="sidebar">
+        <div class="user-profile">
+          <div class="avatar">
+            <img id="user-avatar" src="images/default-avatar.png" alt="用户头像">
+          </div>
+          <div class="user-info">
+            <div id="user-nickname" class="user-nickname">加载中...</div>
+            <div id="connection-status" class="connection-status offline">离线</div>
+          </div>
+          <button id="logout-btn" class="icon-btn logout-btn" title="退出登录">
+            <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          </button>
+        </div>
+        
+        <div class="sidebar-tabs">
+          <button class="sidebar-tab active" data-tab="sessions">会话</button>
+          <button class="sidebar-tab" data-tab="contacts">联系人</button>
+          <button class="sidebar-tab" data-tab="groups">群组</button>
+        </div>
+        
+        <div class="sidebar-content">
+          <!-- 会话列表 -->
+          <div class="tab-content active" id="sessions-tab">
+            <div class="list-header">
+              <h3>最近会话</h3>
+            </div>
+            <ul id="sessions-list" class="list"></ul>
+          </div>
+          
+          <!-- 联系人列表 -->
+          <div class="tab-content" id="contacts-tab">
+            <div class="list-header">
+              <h3>我的好友</h3>
+              <button id="add-friend-btn" class="icon-btn" title="添加好友">
+                <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </button>
+            </div>
+            <ul id="contacts-list" class="list"></ul>
+          </div>
+          
+          <!-- 群组列表 -->
+          <div class="tab-content" id="groups-tab">
+            <div class="list-header">
+              <h3>我的群组</h3>
+              <button id="create-group-btn" class="icon-btn" title="创建群组">
+                <svg viewBox="0 0 24 24"><path d="M8 10H5V7H3v3H0v2h3v3h2v-3h3v-2zm10 1c1.66 0 2.99-1.34 2.99-3S19.66 5 18 5c-.32 0-.63.05-.91.14.57.81.9 1.79.9 2.86s-.34 2.04-.9 2.86c.28.09.59.14.91.14zm-7 0c1.66 0 2.99-1.34 2.99-3S12.66 5 11 5s-3 1.34-3 3 1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm7 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+              </button>
+            </div>
+            <ul id="groups-list" class="list"></ul>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 右侧主内容：聊天界面 -->
+      <div class="main-content">
+        <!-- 聊天界面头部 -->
+        <div class="chat-header">
+          <div class="chat-info">
+            <h2 id="chat-title">选择一个会话开始聊天</h2>
+            <div id="chat-subtitle" class="subtitle"></div>
+          </div>
+        </div>
+        
+        <!-- 聊天消息区域 -->
+        <div id="no-chat-selected" class="no-chat-selected">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12zM7 9h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/></svg>
+            <p>选择一个会话或联系人开始聊天</p>
+          </div>
+        </div>
+        
+        <div id="chat-container" class="chat-container hidden">
+          <div id="message-list" class="message-list"></div>
+          
+          <!-- 消息输入区域 -->
+          <div class="message-input-container">
+            <form id="message-form">
+              <div class="message-input-wrapper">
+                <textarea 
+                  id="message-input" 
+                  class="message-input" 
+                  placeholder="输入消息..." 
+                  rows="1"
+                ></textarea>
+                <button type="submit" class="send-btn">
+                  <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 模态框 -->
+  <div id="modal-container" class="modal-container hidden">
+    <div class="modal-overlay"></div>
+    
+    <!-- 添加好友模态框 -->
+    <div id="add-friend-modal" class="modal">
+      <div class="modal-header">
+        <h3>添加好友</h3>
+        <button class="close-btn">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="add-friend-form">
+          <div class="form-group">
+            <label for="friend-username">用户名</label>
+            <input type="text" id="friend-username" required>
+          </div>
+          <div class="form-group">
+            <label for="friend-message">验证消息</label>
+            <input type="text" id="friend-message" placeholder="请求添加您为好友">
+          </div>
+          <button type="submit" class="btn btn-primary">发送请求</button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- 创建群组模态框 -->
+    <div id="create-group-modal" class="modal">
+      <div class="modal-header">
+        <h3>创建群组</h3>
+        <button class="close-btn">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="create-group-form">
+          <div class="form-group">
+            <label for="group-name">群组名称</label>
+            <input type="text" id="group-name" required>
+          </div>
+          <div class="form-group">
+            <label for="group-members">选择好友</label>
+            <div id="friend-selector" class="friend-selector"></div>
+          </div>
+          <button type="submit" class="btn btn-primary">创建群组</button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- 好友请求模态框 -->
+    <div id="friend-requests-modal" class="modal">
+      <div class="modal-header">
+        <h3>好友请求</h3>
+        <button class="close-btn">×</button>
+      </div>
+      <div class="modal-body">
+        <ul id="friend-requests-list" class="requests-list"></ul>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 通知区域 -->
+  <div id="notifications-container" class="notifications-container"></div>
+  
+  <!-- 脚本 -->
+  <script type="module" src="utils/api.js"></script>
+  <script type="module" src="utils/websocket-client.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

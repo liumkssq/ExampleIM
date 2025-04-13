@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExampleIM - 集成客户端</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 登录注册页面 -->
+        <div class="auth-container" id="authContainer">
+            <div class="auth-header">
+                <h1>ExampleIM</h1>
+                <p>即时通讯平台</p>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">登录</button>
+                <button class="auth-tab" data-tab="register">注册</button>
+            </div>
+            
+            <!-- 登录表单 -->
+            <div class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label for="loginPhone">手机号码</label>
+                    <input type="text" id="loginPhone" placeholder="请输入手机号码">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码">
+                </div>
+                <button class="auth-button" id="loginButton">登录</button>
+            </div>
+            
+            <!-- 注册表单 -->
+            <div class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="registerPhone">手机号码</label>
+                    <input type="text" id="registerPhone" placeholder="请输入手机号码">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">密码</label>
+                    <input type="password" id="registerPassword" placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <label for="registerNickname">昵称</label>
+                    <input type="text" id="registerNickname" placeholder="请输入昵称">
+                </div>
+                <div class="form-group">
+                    <label>性别</label>
+                    <div class="gender-selector">
+                        <label><input type="radio" name="gender" value="1" checked> 男</label>
+                        <label><input type="radio" name="gender" value="0"> 女</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="registerAvatar">头像URL</label>
+                    <input type="text" id="registerAvatar" placeholder="请输入头像URL" value="https://via.placeholder.com/100">
+                </div>
+                <button class="auth-button" id="registerButton">注册</button>
+            </div>
+        </div>
+        
+        <!-- 主应用界面 -->
+        <div class="main-container hidden" id="mainContainer">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <!-- 用户信息 -->
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <img id="userAvatar" src="https://via.placeholder.com/100" alt="用户头像">
+                    </div>
+                    <div class="user-details">
+                        <h3 id="userNickname">用户昵称</h3>
+                        <span id="userPhone">手机号码</span>
+                    </div>
+                </div>
+                
+                <!-- 功能选项卡 -->
+                <div class="sidebar-tabs">
+                    <button class="sidebar-tab active" data-tab="chats">
+                        <i class="fas fa-comment"></i> 会话
+                    </button>
+                    <button class="sidebar-tab" data-tab="friends">
+                        <i class="fas fa-user-friends"></i> 好友
+                    </button>
+                    <button class="sidebar-tab" data-tab="groups">
+                        <i class="fas fa-users"></i> 群组
+                    </button>
+                </div>
+                
+                <!-- 会话列表 -->
+                <div class="sidebar-content active" id="chatsContent">
+                    <div class="search-box">
+                        <input type="text" placeholder="搜索会话..." id="searchChats">
+                    </div>
+                    <ul class="conversation-list" id="conversationList">
+                        <!-- 会话列表项将通过JavaScript动态添加 -->
+                    </ul>
+                </div>
+                
+                <!-- 好友列表 -->
+                <div class="sidebar-content" id="friendsContent">
+                    <div class="search-box">
+                        <input type="text" placeholder="搜索好友..." id="searchFriends">
+                    </div>
+                    <div class="action-buttons">
+                        <button id="addFriendBtn"><i class="fas fa-user-plus"></i> 添加好友</button>
+                        <button id="friendRequestsBtn"><i class="fas fa-bell"></i> 好友请求</button>
+                    </div>
+                    <ul class="friends-list" id="friendsList">
+                        <!-- 好友列表项将通过JavaScript动态添加 -->
+                    </ul>
+                </div>
+                
+                <!-- 群组列表 -->
+                <div class="sidebar-content" id="groupsContent">
+                    <div class="search-box">
+                        <input type="text" placeholder="搜索群组..." id="searchGroups">
+                    </div>
+                    <div class="action-buttons">
+                        <button id="createGroupBtn"><i class="fas fa-plus"></i> 创建群组</button>
+                        <button id="joinGroupBtn"><i class="fas fa-sign-in-alt"></i> 加入群组</button>
+                    </div>
+                    <ul class="groups-list" id="groupsList">
+                        <!-- 群组列表项将通过JavaScript动态添加 -->
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 聊天区域 -->
+            <div class="chat-container">
+                <!-- 欢迎界面 -->
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="welcome-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h2>欢迎使用 ExampleIM</h2>
+                    <p>选择一个会话开始聊天</p>
+                </div>
+                
+                <!-- 聊天界面 -->
+                <div class="chat-window hidden" id="chatWindow">
+                    <!-- 聊天头部 -->
+                    <div class="chat-header">
+                        <div class="chat-info">
+                            <h3 id="chatName">对话名称</h3>
+                            <span id="chatStatus">在线</span>
+                        </div>
+                        <div class="chat-actions">
+                            <button id="chatInfoBtn"><i class="fas fa-info-circle"></i></button>
+                        </div>
+                    </div>
+                    
+                    <!-- 聊天消息区域 -->
+                    <div class="message-container" id="messageContainer">
+                        <!-- 消息将通过JavaScript动态添加 -->
+                    </div>
+                    
+                    <!-- 聊天输入区域 -->
+                    <div class="chat-input">
+                        <div class="input-toolbar">
+                            <button class="toolbar-btn"><i class="far fa-smile"></i></button>
+                            <button class="toolbar-btn"><i class="far fa-image"></i></button>
+                            <button class="toolbar-btn"><i class="fas fa-paperclip"></i></button>
+                        </div>
+                        <div class="input-area">
+                            <textarea id="messageInput" placeholder="输入消息..."></textarea>
+                            <button id="sendMessageBtn"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 模态框 -->
+        <div class="modal-overlay hidden" id="modalOverlay"></div>
+        
+        <!-- 添加好友模态框 -->
+        <div class="modal hidden" id="addFriendModal">
+            <div class="modal-header">
+                <h3>添加好友</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="friendPhone">好友ID</label>
+                    <input type="text" id="friendUserUid" placeholder="请输入好友ID">
+                </div>
+                <div class="form-group">
+                    <label for="friendRequestMsg">请求消息</label>
+                    <input type="text" id="friendRequestMsg" placeholder="请输入请求消息">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button" id="sendFriendRequestBtn">发送请求</button>
+            </div>
+        </div>
+        
+        <!-- 好友请求列表模态框 -->
+        <div class="modal hidden" id="friendRequestsModal">
+            <div class="modal-header">
+                <h3>好友请求</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul class="request-list" id="friendRequestsList">
+                    <!-- 好友请求将通过JavaScript动态添加 -->
+                </ul>
+            </div>
+        </div>
+        
+        <!-- 创建群组模态框 -->
+        <div class="modal hidden" id="createGroupModal">
+            <div class="modal-header">
+                <h3>创建群组</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="groupName">群组名称</label>
+                    <input type="text" id="groupName" placeholder="请输入群组名称">
+                </div>
+                <div class="form-group">
+                    <label for="groupIcon">群组图标</label>
+                    <input type="text" id="groupIcon" placeholder="请输入群组图标URL" value="https://via.placeholder.com/100">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button" id="createGroupSubmitBtn">创建群组</button>
+            </div>
+        </div>
+        
+        <!-- 加入群组模态框 -->
+        <div class="modal hidden" id="joinGroupModal">
+            <div class="modal-header">
+                <h3>加入群组</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="groupId">群组ID</label>
+                    <input type="text" id="groupId" placeholder="请输入群组ID">
+                </div>
+                <div class="form-group">
+                    <label for="groupRequestMsg">请求消息</label>
+                    <input type="text" id="groupRequestMsg" placeholder="请输入请求消息">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button" id="joinGroupSubmitBtn">发送请求</button>
+            </div>
+        </div>
+        
+        <!-- 群组请求模态框 -->
+        <div class="modal hidden" id="groupRequestsModal">
+            <div class="modal-header">
+                <h3>群组请求</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="groupRequestId">群组ID</label>
+                    <input type="text" id="groupRequestId" placeholder="请输入群组ID">
+                    <button id="fetchGroupRequestsBtn">获取请求</button>
+                </div>
+                <ul class="request-list" id="groupRequestsList">
+                    <!-- 群组请求将通过JavaScript动态添加 -->
+                </ul>
+            </div>
+        </div>
+        
+        <!-- 提示消息 -->
+        <div class="toast hidden" id="toast"></div>
+    </div>
+    
+    <!-- 脚本 -->
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

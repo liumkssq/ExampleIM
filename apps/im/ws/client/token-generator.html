@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Token生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        h1 {
+            color: #1890ff;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+        }
+        
+        button {
+            padding: 10px 16px;
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        button:hover {
+            background-color: #40a9ff;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .token-value {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            word-break: break-all;
+            font-family: monospace;
+        }
+        
+        .copy-btn {
+            background-color: #52c41a;
+            padding: 6px 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JWT Token生成器</h1>
+        
+        <div class="form-group">
+            <label for="userId">用户ID：</label>
+            <input type="text" id="userId" placeholder="输入用户ID">
+        </div>
+        
+        <div class="form-group">
+            <label for="secret">密钥：</label>
+            <input type="text" id="secret" value="imooc.com" placeholder="JWT密钥">
+        </div>
+        
+        <div class="form-group">
+            <label for="expireTime">过期时间(小时)：</label>
+            <input type="number" id="expireTime" value="24" min="1" max="720">
+        </div>
+        
+        <button id="generateBtn">生成Token</button>
+        
+        <div id="result" class="result">
+            <h3>生成的Token：</h3>
+            <div id="tokenValue" class="token-value"></div>
+            <button id="copyBtn" class="copy-btn">复制Token</button>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generateBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const resultDiv = document.getElementById('result');
+            const tokenValueDiv = document.getElementById('tokenValue');
+            
+            // 简化的Base64URL编码函数
+            function base64UrlEncode(str) {
+                return btoa(str)
+                    .replace(/\+/g, '-')
+                    .replace(/\//g, '_')
+                    .replace(/=+$/, '');
+            }
+            
+            // 生成JWT Token
+            generateBtn.addEventListener('click', function() {
+                const userId = document.getElementById('userId').value.trim();
+                const secret = document.getElementById('secret').value.trim();
+                const expireHours = parseInt(document.getElementById('expireTime').value);
+                
+                if (!userId) {
+                    alert('请输入用户ID');
+                    return;
+                }
+                
+                if (!secret) {
+                    alert('请输入JWT密钥');
+                    return;
+                }
+                
+                // 创建JWT头部
+                const header = {
+                    alg: 'HS256',
+                    typ: 'JWT'
+                };
+                
+                // 计算过期时间
+                const now = Math.floor(Date.now() / 1000);
+                const exp = now + (expireHours * 60 * 60);
+                
+                // 创建JWT负载
+                const payload = {
+                    userId: userId,
+                    iat: now,
+                    exp: exp
+                };
+                
+                // 对头部和负载进行Base64URL编码
+                const encodedHeader = base64UrlEncode(JSON.stringify(header));
+                const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+                
+                // 注意：这里只是模拟JWT，没有实际的签名
+                // 实际应用中，应当使用HMAC-SHA256等算法进行签名
+                const signature = base64UrlEncode(`${secret}_${now}`);
+                
+                // 组装JWT
+                const token = `${encodedHeader}.${encodedPayload}.${signature}`;
+                
+                // 显示结果
+                tokenValueDiv.textContent = token;
+                resultDiv.style.display = 'block';
+            });
+            
+            // 复制Token到剪贴板
+            copyBtn.addEventListener('click', function() {
+                const token = tokenValueDiv.textContent;
+                navigator.clipboard.writeText(token)
+                    .then(() => {
+                        alert('Token已复制到剪贴板');
+                    })
+                    .catch(err => {
+                        console.error('无法复制:', err);
+                        alert('复制失败，请手动复制');
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

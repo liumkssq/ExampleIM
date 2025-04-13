@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExampleIM 用户中心</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ExampleIM 用户中心</h1>
+            <p>登录、注册和用户信息管理</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="login">登录</button>
+            <button class="tab-btn" data-tab="register">注册</button>
+            <button class="tab-btn" data-tab="user-info">用户信息</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- 登录面板 -->
+            <div class="tab-pane active" id="login-panel">
+                <h2>用户登录</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-phone">手机号码</label>
+                        <input type="text" id="login-phone" placeholder="请输入手机号码" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">密码</label>
+                        <input type="password" id="login-password" placeholder="请输入密码" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary-btn">登录</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 注册面板 -->
+            <div class="tab-pane" id="register-panel">
+                <h2>用户注册</h2>
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-phone">手机号码</label>
+                        <input type="text" id="register-phone" placeholder="请输入手机号码" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">密码</label>
+                        <input type="password" id="register-password" placeholder="请输入密码" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-nickname">昵称</label>
+                        <input type="text" id="register-nickname" placeholder="请输入昵称" required>
+                    </div>
+                    <div class="form-group">
+                        <label>性别</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="register-sex" value="1" checked> 男
+                            </label>
+                            <label>
+                                <input type="radio" name="register-sex" value="0"> 女
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-avatar">头像URL</label>
+                        <input type="text" id="register-avatar" placeholder="请输入头像URL">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary-btn">注册</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 用户信息面板 -->
+            <div class="tab-pane" id="user-info-panel">
+                <h2>用户信息</h2>
+                <div class="user-info-container">
+                    <div class="user-info-status">
+                        <p id="user-status">未登录，请先登录或注册</p>
+                    </div>
+                    <div id="user-info-content" class="hidden">
+                        <div class="user-avatar">
+                            <img id="user-avatar-img" src="" alt="用户头像">
+                        </div>
+                        <div class="user-details">
+                            <p><strong>用户ID:</strong> <span id="user-id"></span></p>
+                            <p><strong>手机号:</strong> <span id="user-phone"></span></p>
+                            <p><strong>昵称:</strong> <span id="user-nickname"></span></p>
+                            <p><strong>性别:</strong> <span id="user-sex"></span></p>
+                        </div>
+                    </div>
+                    <div class="token-section">
+                        <h3>JWT Token</h3>
+                        <div class="token-display">
+                            <textarea id="token-value" readonly></textarea>
+                            <button id="copy-token" class="btn">复制Token</button>
+                        </div>
+                        <p>有效期至: <span id="token-expire"></span></p>
+                    </div>
+                    <div class="actions">
+                        <button id="refresh-info" class="btn primary-btn">刷新用户信息</button>
+                        <button id="logout" class="btn danger-btn">退出登录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-settings">
+            <h3>API设置</h3>
+            <div class="form-group">
+                <label for="api-base-url">API基础URL</label>
+                <input type="text" id="api-base-url" value="http://localhost:8888" placeholder="例如: http://localhost:8888">
+                <small>根据 user.yaml 配置，API服务运行在端口8888</small>
+            </div>
+        </div>
+
+        <div class="response-panel">
+            <h3>API响应 <button id="clear-response" class="btn small-btn">清除</button></h3>
+            <pre id="response-area"></pre>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

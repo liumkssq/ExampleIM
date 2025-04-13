@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExampleIM - 即时通讯客户端</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 登录/注册区域 -->
+        <div class="auth-container" id="authContainer">
+            <div class="auth-header">
+                <h1>ExampleIM</h1>
+                <p>简单高效的即时通讯应用</p>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" data-target="loginForm">登录</button>
+                <button class="tab-btn" data-target="registerForm">注册</button>
+            </div>
+            
+            <div class="form-container active" id="loginForm">
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <label for="loginUsername">用户名</label>
+                        <input type="text" id="loginUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">密码</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="primary-btn">登录</button>
+                </form>
+            </div>
+            
+            <div class="form-container" id="registerForm">
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <label for="registerUsername">用户名</label>
+                        <input type="text" id="registerUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">密码</label>
+                        <input type="password" id="registerPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">确认密码</label>
+                        <input type="password" id="confirmPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nickname">昵称</label>
+                        <input type="text" id="nickname" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">性别</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="gender" value="male" checked> 男
+                            </label>
+                            <label>
+                                <input type="radio" name="gender" value="female"> 女
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="primary-btn">注册</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 主应用区域 -->
+        <div class="main-container hidden" id="mainContainer">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <div class="user-profile">
+                    <img src="https://via.placeholder.com/50" alt="用户头像" id="userAvatar">
+                    <div class="user-info">
+                        <h3 id="userNickname">用户昵称</h3>
+                        <p id="userStatus">在线</p>
+                    </div>
+                </div>
+                
+                <div class="sidebar-tabs">
+                    <button class="sidebar-tab active" data-target="conversationsPanel">会话</button>
+                    <button class="sidebar-tab" data-target="contactsPanel">联系人</button>
+                    <button class="sidebar-tab" data-target="groupsPanel">群组</button>
+                </div>
+                
+                <div class="search-box">
+                    <input type="text" placeholder="搜索...">
+                </div>
+                
+                <div class="sidebar-content">
+                    <!-- 会话面板 -->
+                    <div class="tab-panel active" id="conversationsPanel">
+                        <div class="list" id="conversationsList">
+                            <!-- 会话列表 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 联系人面板 -->
+                    <div class="tab-panel" id="contactsPanel">
+                        <div class="action-bar">
+                            <button class="icon-btn" id="addFriendBtn" title="添加好友">
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                        </div>
+                        <div class="list" id="contactsList">
+                            <!-- 联系人列表 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 群组面板 -->
+                    <div class="tab-panel" id="groupsPanel">
+                        <div class="action-bar">
+                            <button class="icon-btn" id="createGroupBtn" title="创建群组">
+                                <i class="fas fa-users-medical"></i>
+                            </button>
+                        </div>
+                        <div class="list" id="groupsList">
+                            <!-- 群组列表 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 聊天区域 -->
+            <div class="chat-area">
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="welcome-content">
+                        <h2>欢迎使用 ExampleIM</h2>
+                        <p>选择一个会话开始聊天吧！</p>
+                    </div>
+                </div>
+                
+                <div class="chat-container hidden" id="chatContainer">
+                    <div class="chat-header">
+                        <div class="chat-info">
+                            <h3 id="chatName">会话名称</h3>
+                            <p id="chatStatus">2人会话</p>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="icon-btn" id="infoBtn" title="会话信息">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="message-container" id="messageContainer">
+                        <!-- 消息区域 -->
+                    </div>
+                    
+                    <div class="message-input">
+                        <textarea id="messageText" placeholder="输入消息..." rows="2"></textarea>
+                        <button class="primary-btn" id="sendMessageBtn">发送</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 添加好友弹窗 -->
+        <div class="modal-container hidden" id="addFriendModal">
+            <div class="modal-backdrop"></div>
+            <div class="modal active">
+                <div class="modal-header">
+                    <h3>添加好友</h3>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="friendUsername">用户名</label>
+                        <input type="text" id="friendUsername" placeholder="输入用户名搜索">
+                    </div>
+                    <div id="searchResults" class="hidden">
+                        <h4>搜索结果</h4>
+                        <div class="list" id="userSearchResults">
+                            <!-- 搜索结果 -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="secondary-btn modal-close-btn">取消</button>
+                    <button class="primary-btn" id="searchUserBtn">搜索</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 创建群组弹窗 -->
+        <div class="modal-container hidden" id="createGroupModal">
+            <div class="modal-backdrop"></div>
+            <div class="modal active">
+                <div class="modal-header">
+                    <h3>创建群组</h3>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="groupName">群组名称</label>
+                        <input type="text" id="groupName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="groupDescription">群组描述</label>
+                        <textarea id="groupDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>选择成员</label>
+                        <div class="list" id="selectMembersList">
+                            <!-- 选择成员列表 -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="secondary-btn modal-close-btn">取消</button>
+                    <button class="primary-btn" id="createGroupSubmitBtn">创建</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 通知区域 -->
+        <div class="toast-container" id="toastContainer">
+            <!-- 通知提示 -->
+        </div>
+    </div>
+    
+    <script src="utils/api.js"></script>
+    <script src="utils/websocket-client.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExampleIM 高级客户端</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ExampleIM 高级客户端</h1>
+        </header>
+        
+        <div class="main-content">
+            <!-- 左侧边栏：用户和会话列表 -->
+            <div class="sidebar">
+                <div class="user-info">
+                    <img id="userAvatar" src="https://via.placeholder.com/40" alt="用户头像">
+                    <div class="user-details">
+                        <div id="userName">未登录</div>
+                        <div id="userId" class="user-id"></div>
+                    </div>
+                    <div class="connection-status" id="connectionStatus">未连接</div>
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="conversations">会话</button>
+                    <button class="tab-btn" data-tab="contacts">联系人</button>
+                </div>
+                
+                <div class="tab-content">
+                    <div id="conversationsTab" class="tab-pane active">
+                        <div class="search-box">
+                            <input type="text" placeholder="搜索会话..." id="searchConversations">
+                        </div>
+                        <ul class="conversation-list" id="conversationList">
+                            <!-- 会话列表将动态添加 -->
+                        </ul>
+                    </div>
+                    <div id="contactsTab" class="tab-pane">
+                        <div class="search-box">
+                            <input type="text" placeholder="搜索联系人..." id="searchContacts">
+                        </div>
+                        <ul class="contact-list" id="contactList">
+                            <!-- 联系人列表将动态添加 -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 聊天主界面 -->
+            <div class="chat-container">
+                <div id="welcomeScreen" class="welcome-screen">
+                    <h2>欢迎使用 ExampleIM</h2>
+                    <p>请先登录并选择一个会话开始聊天</p>
+                    <div class="auth-form" id="authForm">
+                        <h3>用户认证</h3>
+                        <div class="form-group">
+                            <label for="tokenInput">JWT Token:</label>
+                            <textarea id="tokenInput"></textarea>
+                        </div>
+                        <button id="loginBtn">登录</button>
+                    </div>
+                </div>
+                
+                <div id="chatWindow" class="chat-window hidden">
+                    <div class="chat-header">
+                        <div class="chat-title" id="chatTitle">对话标题</div>
+                        <div class="chat-info" id="chatInfo">
+                            <span id="chatStatus">在线</span>
+                        </div>
+                    </div>
+                    
+                    <div class="message-list" id="messageList">
+                        <!-- 消息列表将动态添加 -->
+                    </div>
+                    
+                    <div class="chat-input">
+                        <div class="toolbar">
+                            <button class="tool-btn emoji-btn"><i class="icon">😊</i></button>
+                            <button class="tool-btn image-btn"><i class="icon">🖼️</i></button>
+                            <button class="tool-btn file-btn"><i class="icon">📎</i></button>
+                        </div>
+                        <textarea id="messageInput" placeholder="输入消息..." disabled></textarea>
+                        <button id="sendBtn" disabled>发送</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧边栏：详细信息和设置 -->
+            <div class="details-panel">
+                <div class="details-header">
+                    <h3>详细信息</h3>
+                </div>
+                
+                <div class="details-content" id="detailsContent">
+                    <!-- 当前会话或联系人的详细信息 -->
+                </div>
+                
+                <div class="api-settings">
+                    <h3>API设置</h3>
+                    <div class="form-group">
+                        <label for="apiBaseUrl">API服务地址:</label>
+                        <input type="text" id="apiBaseUrl" value="http://localhost:8888">
+                    </div>
+                    <div class="form-group">
+                        <label for="wsUrl">WebSocket地址:</label>
+                        <input type="text" id="wsUrl" value="ws://localhost:10090/ws">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="log-panel">
+            <div class="log-header">
+                <h3>日志</h3>
+                <button id="clearLogBtn">清除</button>
+            </div>
+            <pre id="logArea"></pre>
+        </div>
+    </div>
+    
+    <!-- 工具脚本 -->
+    <script src="../utils/websocket-client.js"></script>
+    <script src="api-client.js"></script>
+    
+    <!-- 主脚本 -->
+    <script src="app.js"></script>
+</body>
+</html>
