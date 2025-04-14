@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>ExampleIM WebSocket客户端</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .left-panel, .right-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .left-panel {
+            flex: 1;
+        }
+        .right-panel {
+            flex: 1;
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        h2 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: #555;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        button.danger:hover {
+            background-color: #d32f2f;
+        }
+        .message-list {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #f9f9f9;
+            margin-bottom: 15px;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .error {
+            color: #f44336;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .info {
+            color: #2196F3;
+        }
+        .received {
+            background-color: #e8f5e9;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+        .sent {
+            background-color: #e3f2fd;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 8px;
+            text-align: right;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+            font-family: monospace;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        .connected {
+            background-color: #c8e6c9;
+            color: #388e3c;
+        }
+        .disconnected {
+            background-color: #ffcdd2;
+            color: #d32f2f;
+        }
+        .buttons {
+            margin-top: 15px;
+        }
+        #jsonEditor {
+            height: 150px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>ExampleIM WebSocket客户端</h1>
+    
+    <div class="container">
+        <div class="left-panel">
+            <h2>连接设置</h2>
+            <div class="form-group">
+                <label for="serverUrl">服务器地址</label>
+                <input type="text" id="serverUrl" value="ws://127.0.0.1:10090/ws" />
+            </div>
+            
+            <div class="form-group">
+                <label for="token">JWT令牌</label>
+                <input type="text" id="token" placeholder="输入JWT令牌" />
+            </div>
+            
+            <div class="form-group">
+                <label for="userId">用户ID</label>
+                <input type="text" id="userId" value="0x0000003000000001" />
+            </div>
+            
+            <div class="buttons">
+                <button id="connectBtn">连接</button>
+                <button id="disconnectBtn" class="danger" disabled>断开</button>
+                <span id="connectionStatus" class="status disconnected">未连接</span>
+            </div>
+            
+            <h2>消息发送</h2>
+            <div class="form-group">
+                <label for="messageType">消息类型</label>
+                <select id="messageType">
+                    <option value="user.online">user.online (用户上线)</option>
+                    <option value="conversation.chat">conversation.chat (聊天)</option>
+                    <option value="push">push (推送)</option>
+                </select>
+            </div>
+            
+            <div id="chatFields">
+                <div class="form-group">
+                    <label for="conversationId">会话ID</label>
+                    <input type="text" id="conversationId" placeholder="小ID_大ID格式，如不填写将自动生成" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="receiverId">接收者ID</label>
+                    <input type="text" id="receiverId" placeholder="接收消息的用户ID" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="chatType">聊天类型</label>
+                    <select id="chatType">
+                        <option value="2">单聊 (2)</option>
+                        <option value="1">群聊 (1)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="mType">消息类型</label>
+                    <select id="mType">
+                        <option value="0">文本 (0)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content">消息内容</label>
+                    <textarea id="content" rows="3" placeholder="输入消息内容"></textarea>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="jsonEditor">JSON消息体</label>
+                <textarea id="jsonEditor" placeholder="消息JSON将在这里生成，也可以手动编辑"></textarea>
+            </div>
+            
+            <div class="buttons">
+                <button id="generateJsonBtn" class="secondary">生成JSON</button>
+                <button id="sendBtn" disabled>发送</button>
+                <button id="clearBtn" class="danger">清空日志</button>
+            </div>
+        </div>
+        
+        <div class="right-panel">
+            <h2>消息日志</h2>
+            <div id="messageList" class="message-list"></div>
+        </div>
+    </div>
+    
+    <script>
+        // DOM元素
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const generateJsonBtn = document.getElementById('generateJsonBtn');
+        const serverUrlInput = document.getElementById('serverUrl');
+        const tokenInput = document.getElementById('token');
+        const userIdInput = document.getElementById('userId');
+        const messageTypeSelect = document.getElementById('messageType');
+        const conversationIdInput = document.getElementById('conversationId');
+        const receiverIdInput = document.getElementById('receiverId');
+        const chatTypeSelect = document.getElementById('chatType');
+        const mTypeSelect = document.getElementById('mType');
+        const contentTextarea = document.getElementById('content');
+        const jsonEditor = document.getElementById('jsonEditor');
+        const messageList = document.getElementById('messageList');
+        const connectionStatus = document.getElementById('connectionStatus');
+        
+        // WebSocket实例
+        let socket = null;
+        let messageId = 1;
+        
+        // 日志函数
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `<pre>${getCurrentTime()} - ${message}</pre>`;
+            messageList.appendChild(entry);
+            messageList.scrollTop = messageList.scrollHeight;
+        }
+        
+        // 获取当前时间
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString();
+        }
+        
+        // 显示消息
+        function displayMessage(message, isSent) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = isSent ? 'sent' : 'received';
+            
+            let content;
+            try {
+                if (typeof message === 'string') {
+                    content = message;
+                } else {
+                    content = JSON.stringify(message, null, 2);
+                }
+            } catch (e) {
+                content = String(message);
+            }
+            
+            msgDiv.innerHTML = `<pre>${content}</pre>`;
+            messageList.appendChild(msgDiv);
+            messageList.scrollTop = messageList.scrollHeight;
+        }
+        
+        // 生成消息ID
+        function generateMessageId() {
+            return String(messageId++);
+        }
+        
+        // 生成JSON
+        function generateJson() {
+            const messageType = messageTypeSelect.value;
+            const id = generateMessageId();
+            let data = {};
+            
+            switch (messageType) {
+                case 'user.online':
+                    data = {
+                        userId: userIdInput.value.trim()
+                    };
+                    break;
+                    
+                case 'conversation.chat':
+                    data = {
+                        conversationId: conversationIdInput.value.trim(),
+                        chatType: parseInt(chatTypeSelect.value),
+                        recvId: receiverIdInput.value.trim(),
+                        msg: {
+                            mType: parseInt(mTypeSelect.value),
+                            content: contentTextarea.value.trim()
+                        },
+                        sendTime: Date.now()
+                    };
+                    break;
+                    
+                case 'push':
+                    data = {
+                        conversationId: conversationIdInput.value.trim(),
+                        chatType: parseInt(chatTypeSelect.value),
+                        sendId: userIdInput.value.trim(),
+                        recvId: receiverIdInput.value.trim(),
+                        mType: parseInt(mTypeSelect.value),
+                        content: contentTextarea.value.trim(),
+                        sendTime: Date.now()
+                    };
+                    break;
+            }
+            
+            const message = {
+                frameType: 0,
+                id: id,
+                method: messageType,
+                data: data
+            };
+            
+            jsonEditor.value = JSON.stringify(message, null, 2);
+            return message;
+        }
+        
+        // 连接到WebSocket服务器
+        function connect() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                log('已经连接到服务器', 'info');
+                return;
+            }
+            
+            const serverUrl = serverUrlInput.value.trim();
+            const token = tokenInput.value.trim();
+            
+            if (!token) {
+                log('请输入JWT令牌', 'error');
+                return;
+            }
+            
+            // 构建URL
+            let wsUrl = serverUrl;
+            if (!wsUrl.includes('?')) {
+                wsUrl += '?token=' + encodeURIComponent(token);
+            } else {
+                wsUrl += '&token=' + encodeURIComponent(token);
+            }
+            
+            try {
+                log(`正在连接到 ${wsUrl}...`, 'info');
+                socket = new WebSocket(wsUrl);
+                
+                socket.onopen = function() {
+                    log('连接成功！', 'success');
+                    connectionStatus.textContent = '已连接';
+                    connectionStatus.className = 'status connected';
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    sendBtn.disabled = false;
+                    
+                    // 自动发送上线消息
+                    const onlineMessage = {
+                        frameType: 0,
+                        id: generateMessageId(),
+                        method: 'user.online',
+                        data: {
+                            userId: userIdInput.value.trim()
+                        }
+                    };
+                    
+                    socket.send(JSON.stringify(onlineMessage));
+                    displayMessage(onlineMessage, true);
+                    log('已发送用户上线消息', 'info');
+                };
+                
+                socket.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        log('收到消息', 'success');
+                        displayMessage(data, false);
+                    } catch (e) {
+                        log(`收到非JSON消息: ${event.data}`, 'info');
+                        displayMessage(event.data, false);
+                    }
+                };
+                
+                socket.onclose = function(event) {
+                    log(`连接关闭: ${event.reason || '未知原因'}`, 'error');
+                    connectionStatus.textContent = '未连接';
+                    connectionStatus.className = 'status disconnected';
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    sendBtn.disabled = true;
+                };
+                
+                socket.onerror = function(error) {
+                    log(`连接错误: ${error.message || '未知错误'}`, 'error');
+                };
+            } catch (error) {
+                log(`创建WebSocket时出错: ${error.message}`, 'error');
+            }
+        }
+        
+        // 断开连接
+        function disconnect() {
+            if (socket) {
+                socket.close();
+                log('已断开连接', 'info');
+            }
+        }
+        
+        // 发送消息
+        function sendMessage() {
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                log('WebSocket未连接，无法发送消息', 'error');
+                return;
+            }
+            
+            try {
+                const message = JSON.parse(jsonEditor.value);
+                socket.send(JSON.stringify(message));
+                log('消息已发送', 'success');
+                displayMessage(message, true);
+            } catch (e) {
+                log(`发送消息出错: ${e.message}`, 'error');
+            }
+        }
+        
+        // 清空日志
+        function clearLog() {
+            messageList.innerHTML = '';
+            log('日志已清空', 'info');
+        }
+        
+        // 事件监听
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+        sendBtn.addEventListener('click', sendMessage);
+        clearBtn.addEventListener('click', clearLog);
+        generateJsonBtn.addEventListener('click', generateJson);
+        
+        // 消息类型变更处理
+        messageTypeSelect.addEventListener('change', function() {
+            const type = messageTypeSelect.value;
+            const chatFields = document.getElementById('chatFields');
+            
+            if (type === 'user.online') {
+                chatFields.style.display = 'none';
+            } else {
+                chatFields.style.display = 'block';
+            }
+            
+            generateJson();
+        });
+        
+        // 初始化
+        generateJson();
+    </script>
+</body>
+</html>
