@@ -1,13 +1,12 @@
 Name: social.rpc
 ListenOn: 0.0.0.0:10001
-TimeOut: 1000
 Etcd:
   Hosts:
-  - 127.0.0.1:12379
+    - 127.0.0.1:3379
   Key: social.rpc
 
 Mysql:
-  DataSource: root:easy-chat@tcp(127.0.0.1:13306)/easy_chat?charset=utf8mb4&parseTime=true&loc=Local
+  DataSource: root:easy-chat@tcp(127.0.0.1:13306)/easy-chat?charset=utf8mb4&parseTime=true
 
 Cache:
   - Host: 127.0.0.1:16379

@@ -2,14 +2,13 @@ package logic
 
 import (
 	"context"
+	"github.com/liumkssq/easy-chat/apps/social/rpc/internal/svc"
+	"github.com/liumkssq/easy-chat/apps/social/rpc/social"
 	"github.com/liumkssq/easy-chat/apps/social/socialmodels"
 	"github.com/liumkssq/easy-chat/pkg/constants"
 	"github.com/liumkssq/easy-chat/pkg/xerr"
 	"github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
-
-	"github.com/liumkssq/easy-chat/apps/social/rpc/internal/svc"
-	"github.com/liumkssq/easy-chat/apps/social/rpc/social"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -34,40 +33,51 @@ func NewFriendPutInHandleLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 }
 
 func (l *FriendPutInHandleLogic) FriendPutInHandle(in *social.FriendPutInHandleReq) (*social.FriendPutInHandleResp, error) {
-	friendReq, err := l.svcCtx.FriendRequestsModel.FindOne(l.ctx, int64(in.FriendReqId))
+	// todo: add your logic here and delete this line
+
+	// 获取好友申请记录
+	firendReq, err := l.svcCtx.FriendRequestsModel.FindOne(l.ctx, int64(in.FriendReqId))
 	if err != nil {
 		return nil, errors.Wrapf(xerr.NewDBErr(), "find friendsRequest by friendReqid err %v req %v ", err,
 			in.FriendReqId)
 	}
-	switch constants.HandlerResult(friendReq.HandleResult.Int64) {
+
+	// 验证是否有处理
+	switch constants.HandlerResult(firendReq.HandleResult.Int64) {
 	case constants.PassHandlerResult:
 		return nil, errors.WithStack(ErrFriendReqBeforePass)
 	case constants.RefuseHandlerResult:
 		return nil, errors.WithStack(ErrFriendReqBeforeRefuse)
 	}
-	friendReq.HandleResult.Int64 = int64(in.HandleResult)
-	l.svcCtx.FriendRequestsModel.Trans(l.ctx, func(ctx context.Context, session sqlx.Session) error {
-		if err := l.svcCtx.FriendRequestsModel.Update(l.ctx, session, friendReq); err != nil {
-			return errors.Wrapf(xerr.NewDBErr(), "update friend request err %v, req %v", err, friendReq)
+
+	firendReq.HandleResult.Int64 = int64(in.HandleResult)
+
+	// 修改申请结果 -》 通过【建立两条好友关系记录】 -》 事务
+	err = l.svcCtx.FriendRequestsModel.Trans(l.ctx, func(ctx context.Context, session sqlx.Session) error {
+		if err := l.svcCtx.FriendRequestsModel.Update(l.ctx, session, firendReq); err != nil {
+			return errors.Wrapf(xerr.NewDBErr(), "update friend request err %v, req %v", err, firendReq)
 		}
+
 		if constants.HandlerResult(in.HandleResult) != constants.PassHandlerResult {
 			return nil
 		}
-		// 插入好友关系
+
 		friends := []*socialmodels.Friends{
 			{
-				UserId:    friendReq.UserId,
-				FriendUid: friendReq.ReqUid,
+				UserId:    firendReq.UserId,
+				FriendUid: firendReq.ReqUid,
 			}, {
-				UserId:    friendReq.ReqUid,
-				FriendUid: friendReq.UserId,
+				UserId:    firendReq.ReqUid,
+				FriendUid: firendReq.UserId,
 			},
 		}
+
 		_, err = l.svcCtx.FriendsModel.Inserts(l.ctx, session, friends...)
 		if err != nil {
 			return errors.Wrapf(xerr.NewDBErr(), "friends inserts err %v, req %v", err, friends)
 		}
 		return nil
 	})
-	return &social.FriendPutInHandleResp{}, nil
+
+	return &social.FriendPutInHandleResp{}, err
 }

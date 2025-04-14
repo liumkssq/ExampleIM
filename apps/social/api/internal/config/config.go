@@ -8,11 +8,16 @@ import (
 
 type Config struct {
 	rest.RestConf
-	ImRpc   zrpc.RpcClientConf
-	Redisx  redis.RedisConf
+
+	Redisx redis.RedisConf
+
+	SocialRpc zrpc.RpcClientConf
+	UserRpc   zrpc.RpcClientConf
+
+	ImRpc zrpc.RpcClientConf
+
 	JwtAuth struct {
 		AccessSecret string
+		//AccessExpire int64
 	}
-	UserRpc   zrpc.RpcClientConf
-	SocialRpc zrpc.RpcClientConf
 }

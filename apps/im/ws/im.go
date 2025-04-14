@@ -23,11 +23,12 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	srv := websocket.NewServer(c.ListenOn,
 		websocket.WithServerAuthentication(handler.NewJwtAuth(ctx)),
-		websocket.WithServerAck(websocket.RigorAck),
+		//websocket.WithServerAck(websocket.RigorAck),
+		websocket.WithServerAck(websocket.NoAck),
 		websocket.WithServerMaxConnectionIdle(10*60*time.Second),
 		websocket.WithServerCors("*"))
 
 	defer srv.Stop()
-	handler.RegisterHandler(srv, ctx)
+	handler.RegisterHandlers(srv, ctx)
 	srv.Start()
 }

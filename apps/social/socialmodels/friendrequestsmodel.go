@@ -20,8 +20,8 @@ type (
 )
 
 // NewFriendRequestsModel returns a model for the database table.
-func NewFriendRequestsModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) FriendRequestsModel {
+func NewFriendRequestsModel(conn sqlx.SqlConn, c cache.CacheConf) FriendRequestsModel {
 	return &customFriendRequestsModel{
-		defaultFriendRequestsModel: newFriendRequestsModel(conn, c, opts...),
+		defaultFriendRequestsModel: newFriendRequestsModel(conn, c),
 	}
 }

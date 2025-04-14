@@ -2,17 +2,22 @@ package logic
 
 import (
 	"context"
+	"github.com/jinzhu/copier"
 	"github.com/liumkssq/easy-chat/apps/user/models"
+	"github.com/liumkssq/easy-chat/apps/user/rpc/internal/svc"
+	"github.com/liumkssq/easy-chat/apps/user/rpc/user"
 	"github.com/liumkssq/easy-chat/pkg/ctxdata"
 	"github.com/liumkssq/easy-chat/pkg/encrypt"
 	"github.com/liumkssq/easy-chat/pkg/xerr"
 	"github.com/pkg/errors"
 	"time"
 
-	"github.com/liumkssq/easy-chat/apps/user/rpc/internal/svc"
-	"github.com/liumkssq/easy-chat/apps/user/rpc/user"
-
 	"github.com/zeromicro/go-zero/core/logx"
+)
+
+var (
+	ErrPhoneNotRegister = xerr.New(xerr.SERVER_COMMON_ERROR, "手机号没有注册")
+	ErrUserPwdError     = xerr.New(xerr.SERVER_COMMON_ERROR, "密码不正确")
 )
 
 type LoginLogic struct {
@@ -20,11 +25,6 @@ type LoginLogic struct {
 	svcCtx *svc.ServiceContext
 	logx.Logger
 }
-
-var (
-	ErrPhoneNotRegister = xerr.New(xerr.SERVER_COMMON_ERROR, "手机号没有注册")
-	ErrUserPwdError     = xerr.New(xerr.SERVER_COMMON_ERROR, "密码不正确")
-)
 
 func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic {
 	return &LoginLogic{
@@ -35,8 +35,10 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 }
 
 func (l *LoginLogic) Login(in *user.LoginReq) (*user.LoginResp, error) {
+	// todo: add your logic here and delete this line
+
 	// 1. 验证用户是否注册，根据手机号码验证
-	userEntity, err := l.svcCtx.UserModels.FindByPhone(l.ctx, in.Phone)
+	userEntity, err := l.svcCtx.UsersModel.FindByPhone(l.ctx, in.Phone)
 	if err != nil {
 		if err == models.ErrNotFound {
 			return nil, errors.WithStack(ErrPhoneNotRegister)
@@ -57,7 +59,11 @@ func (l *LoginLogic) Login(in *user.LoginReq) (*user.LoginResp, error) {
 		return nil, errors.Wrapf(xerr.NewDBErr(), "ctxdata get jwt token err %v", err)
 	}
 
+	var u user.UserEntity
+	copier.Copy(&u, userEntity)
 	return &user.LoginResp{
+		User:   &u,
+		Id:     userEntity.Id,
 		Token:  token,
 		Expire: now + l.svcCtx.Config.Jwt.AccessExpire,
 	}, nil

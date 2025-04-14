@@ -1,3 +1,8 @@
+/**
+ * @author: dn-jinmin/dn-jinmin
+ * @doc:
+ */
+
 package websocket
 
 import (
@@ -11,17 +16,16 @@ type Authentication interface {
 	UserId(r *http.Request) string
 }
 
-type authentication struct {
-}
+type authentication struct{}
 
-func (a *authentication) Auth(w http.ResponseWriter, r *http.Request) bool {
+func (*authentication) Auth(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
-
-func (a authentication) UserId(r *http.Request) string {
+func (*authentication) UserId(r *http.Request) string {
 	query := r.URL.Query()
 	if query != nil && query["userId"] != nil {
 		return fmt.Sprintf("%v", query["userId"])
 	}
+
 	return fmt.Sprintf("%v", time.Now().UnixMilli())
 }

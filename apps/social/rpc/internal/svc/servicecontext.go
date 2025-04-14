@@ -8,6 +8,7 @@ import (
 
 type ServiceContext struct {
 	Config config.Config
+
 	socialmodels.FriendsModel
 	socialmodels.FriendRequestsModel
 	socialmodels.GroupsModel
@@ -16,9 +17,12 @@ type ServiceContext struct {
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
+
 	sqlConn := sqlx.NewMysql(c.Mysql.DataSource)
+
 	return &ServiceContext{
-		Config:              c,
+		Config: c,
+
 		FriendsModel:        socialmodels.NewFriendsModel(sqlConn, c.Cache),
 		FriendRequestsModel: socialmodels.NewFriendRequestsModel(sqlConn, c.Cache),
 		GroupsModel:         socialmodels.NewGroupsModel(sqlConn, c.Cache),

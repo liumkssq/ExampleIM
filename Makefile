@@ -1,122 +1,39 @@
-.PHONY: all build test clean lint docker-build docker-push pprof bench flame-graph
+user-rpc-dev:
+	@make -f deploy/mk/user-rpc.mk release-test
 
-# Global variables
-DOCKER_REGISTRY ?= your-registry
-VERSION ?= $(shell git describe --tags --always --dirty)
-SERVICES := user social im task
+user-api-dev:
+	@make -f deploy/mk/user-api.mk release-test
 
-# Go related variables
-GOBASE := $(shell pwd)
-GOBIN := $(GOBASE)/bin
-PROFILE_PORT ?= 6060
-SERVICE ?= user
-BENCH_TIME ?= 30s
-BENCH_FUNC ?= .
+social-rpc-dev:
+	@make -f deploy/mk/social-rpc.mk release-test
 
-# Build all services
-all: lint test build
+social-api-dev:
+	@make -f deploy/mk/social-api.mk release-test
 
-# Build specific service
-build-%:
-	@echo "Building $*..."
-	@cd apps/$* && go build -o ../../bin/$* ./cmd/...
+im-ws-dev:
+	@make -f deploy/mk/im-ws.mk release-test
 
-# Build all services
-build: $(addprefix build-,$(SERVICES))
+im-rpc-dev:
+	@make -f deploy/mk/im-rpc.mk release-test
 
-# Run tests
-test:
-	@echo "Running tests..."
-	@go test ./... -v -race
+im-api-dev:
+	@make -f deploy/mk/im-api.mk release-test
 
-# Clean build artifacts
-clean:
-	@echo "Cleaning build artifacts..."
-	@rm -rf $(GOBIN)/*
+task-mq-dev:
+	@make -f deploy/mk/task-mq.mk release-test
 
-# Run linter
-lint:
-	@echo "Running linter..."
-	@golangci-lint run ./...
 
-# Docker related commands
-docker-build-%:
-	@echo "Building Docker image for $*..."
-	@docker build -t $(DOCKER_REGISTRY)/$*:$(VERSION) -f apps/$*/Dockerfile .
+release-test: user-rpc-dev user-api-dev social-api-dev social-rpc-dev im-ws-dev im-rpc-dev im-api-dev task-mq-dev
 
-# Build all Docker images
-docker-build: $(addprefix docker-build-,$(SERVICES))
+install-server:
+	sed 's/\r//' -i  ./deploy/script/release-test.sh && cd ./deploy/script && chmod +x release-test.sh && ./release-test.sh
 
-# Push Docker image
-docker-push-%:
-	@echo "Pushing Docker image for $*..."
-	@docker push $(DOCKER_REGISTRY)/$*:$(VERSION)
+install-server-user-rpc:
+	cd ./deploy/script && chmod +x user-rpc-test.sh && ./user-rpc-test.sh
 
-# Push all Docker images
-docker-push: $(addprefix docker-push-,$(SERVICES))
+install-server-user-api:
+	cd ./deploy/script && chmod +x user-api-test.sh && ./user-api-test.sh
 
-# Run all services locally using docker-compose
-docker-compose-up:
-	@docker-compose up -d
-
-# Stop all services
-docker-compose-down:
-	@docker-compose down
-
-# Profiling commands
-pprof-%:
-	@echo "Starting pprof for $* service..."
-	@cd apps/$* && go test -cpuprofile=cpu.prof -memprofile=mem.prof -bench=$(BENCH_FUNC) -benchtime=$(BENCH_TIME) ./...
-
-# Run pprof HTTP server for CPU profile
-pprof-cpu-%:
-	@echo "Viewing CPU profile for $* service..."
-	@go tool pprof -http=:$(PROFILE_PORT) apps/$*/cpu.prof
-
-# Run pprof HTTP server for memory profile
-pprof-mem-%:
-	@echo "Viewing memory profile for $* service..."
-	@go tool pprof -http=:$(PROFILE_PORT) apps/$*/mem.prof
-
-# Generate flame graph
-flame-graph-%:
-	@echo "Generating flame graph for $* service..."
-	@cd apps/$* && go test -cpuprofile=cpu.prof -bench=$(BENCH_FUNC) -benchtime=$(BENCH_TIME) ./...
-	@go tool pprof -flamegraph apps/$*/cpu.prof > apps/$*/flame.svg
-
-# Run benchmarks
-bench-%:
-	@echo "Running benchmarks for $* service..."
-	@cd apps/$* && go test -bench=$(BENCH_FUNC) -benchmem -benchtime=$(BENCH_TIME) ./...
-
-# Run all benchmarks
-bench-all:
-	@for service in $(SERVICES); do \
-		make bench-$$service; \
-	done
-
-# Show help
-help:
-	@echo "Available targets:"
-	@echo "  all              - Run lint, test, and build"
-	@echo "  build           - Build all services"
-	@echo "  build-<service> - Build specific service"
-	@echo "  test            - Run tests"
-	@echo "  clean           - Clean build artifacts"
-	@echo "  lint            - Run linter"
-	@echo "  docker-build    - Build all Docker images"
-	@echo "  docker-push     - Push all Docker images"
-	@echo "  docker-compose-up   - Start all services locally"
-	@echo "  docker-compose-down - Stop all services"
-	@echo "  pprof-<service>     - Run pprof profiling for a service"
-	@echo "  pprof-cpu-<service> - View CPU profile in browser"
-	@echo "  pprof-mem-<service> - View memory profile in browser"
-	@echo "  flame-graph-<service> - Generate flame graph for a service"
-	@echo "  bench-<service>     - Run benchmarks for a service"
-	@echo "  bench-all          - Run benchmarks for all services"
-	@echo ""
-	@echo "Variables:"
-	@echo "  SERVICE=<name>     - Specify service name for commands"
-	@echo "  BENCH_TIME=30s     - Specify benchmark duration"
-	@echo "  BENCH_FUNC=.       - Specify benchmark function pattern"
-	@echo "  PROFILE_PORT=6060  - Specify port for pprof HTTP server"
+install-docker:
+	chmod 777 -R ./components
+	docker-compose up -d

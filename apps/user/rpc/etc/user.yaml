@@ -1,30 +1,23 @@
 Name: user.rpc
-ListenOn: 0.0.0.0:8080
+ListenOn: 0.0.0.0:10000
 Etcd:
   Hosts:
-  - 127.0.0.1:12379
+  - 127.0.0.1:3379
   Key: user.rpc
-TimeOut: 1000
 
 Mysql:
-  DataSource: root:easy-chat@tcp(127.0.0.1:13306)/easy_chat?charset=utf8mb4
-
-Cache:
-  - Host: 127.0.0.1:16379
-    Type: node
-    Pass: easy-chat
+  DataSource: root:easy-chat@tcp(127.0.0.1:13306)/easy-chat?charset=utf8mb4
 
 Redisx:
   Host: 127.0.0.1:16379
   Type: node
   Pass: easy-chat
 
+Cache:
+  - Host: 127.0.0.1:16379
+    Type: node
+    Pass: easy-chat
+
 Jwt:
   AccessSecret: imooc.com
   AccessExpire: 8640000
-
-Telemetry:
-  Name: user.rpc
-  Endpoint: http://127.0.0.1:14268/api/traces
-  Batcher: jaeger
-  Sampler: 1.0

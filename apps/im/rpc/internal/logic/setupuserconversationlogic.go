@@ -3,16 +3,14 @@ package logic
 import (
 	"context"
 	"github.com/liumkssq/easy-chat/apps/im/immodels"
+	"github.com/liumkssq/easy-chat/apps/im/rpc/im"
+	"github.com/liumkssq/easy-chat/apps/im/rpc/internal/svc"
 	"github.com/liumkssq/easy-chat/pkg/constants"
 	"github.com/liumkssq/easy-chat/pkg/wuid"
 	"github.com/liumkssq/easy-chat/pkg/xerr"
 	"github.com/pkg/errors"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
-	"github.com/liumkssq/easy-chat/apps/im/rpc/im"
-	"github.com/liumkssq/easy-chat/apps/im/rpc/internal/svc"
-
 	"github.com/zeromicro/go-zero/core/logx"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type SetUpUserConversationLogic struct {
@@ -31,6 +29,8 @@ func NewSetUpUserConversationLogic(ctx context.Context, svcCtx *svc.ServiceConte
 
 // 建立会话: 群聊, 私聊
 func (l *SetUpUserConversationLogic) SetUpUserConversation(in *im.SetUpUserConversationReq) (*im.SetUpUserConversationResp, error) {
+	// todo: add your logic here and delete this line
+
 	var res im.SetUpUserConversationResp
 	switch constants.ChatType(in.ChatType) {
 	case constants.SingleChatType:
@@ -64,12 +64,16 @@ func (l *SetUpUserConversationLogic) SetUpUserConversation(in *im.SetUpUserConve
 		if err != nil {
 			return nil, err
 		}
+	case constants.GroupChatType:
+		err := l.setUpUserConversation(in.RecvId, in.SendId, in.RecvId, constants.GroupChatType, true)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &res, nil
 }
 
-// 建立会话 双向会话 存储
 func (l *SetUpUserConversationLogic) setUpUserConversation(conversationId, userId, recvId string,
 	chatType constants.ChatType, isShow bool) error {
 	// 用户的会话列表

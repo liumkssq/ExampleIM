@@ -1,0 +1,14 @@
+host: 0.0.0.0
+jwtauth:
+    accessexpire: 8640000
+    accesssecret: imooc.com
+name: user
+port: 8888
+redisx:
+    host: 192.168.117.24:16379
+    pass: easy-chat
+userrpc:
+    etcd:
+        hosts:
+            - 192.168.117.24:3379
+        key: user.rpc

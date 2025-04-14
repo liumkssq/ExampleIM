@@ -1,6 +1,8 @@
 Name: im.ws
 ListenOn: 0.0.0.0:10090
-
+redisx:
+  host: 127.0.0.1:16379
+  pass: easy-im
 JwtAuth:
   AccessSecret: imooc.com
 
@@ -11,4 +13,9 @@ Mongo:
 MsgChatTransfer:
   Topic: msgChatTransfer
   Addrs:
-    - 127.0.0.1:9094
+    - 127.0.0.1:9092
+
+MsgReadTransfer:
+  Topic: msgReadTransfer
+  Addrs:
+    - 127.0.0.1:9092

@@ -1,75 +1,95 @@
+/**
+ * @author: dn-jinmin/dn-jinmin
+ * @doc:
+ */
+
 package interceptor
 
 import (
 	"context"
 	"fmt"
-
+	"github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/collection"
-	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/utils"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 )
 
-const (
-	// Tkey 任务key
-	Tkey = "easy-im-idempotence-task-key"
-	// Dkey 分发key
-	Dkey = "easy-im-idempotence-dispatch-key"
-)
-
-// Idempotence 幂等性接口
-type Idempotence interface {
-	// Identify 生成唯一标识
+type Idempotent interface {
+	// 获取请求的标识
 	Identify(ctx context.Context, method string) string
-	// IsIdempotentMethod 判断是否是幂等性方法
+	// 是否支持幂等性
 	IsIdempotentMethod(fullMethod string) bool
-	// TryAcquire 尝试获取锁
+	// 幂等性的验证
 	TryAcquire(ctx context.Context, id string) (resp interface{}, isAcquire bool)
-	// SaveResp 保存响应
+	// 执行之后结果的保存
 	SaveResp(ctx context.Context, id string, resp interface{}, respErr error) error
 }
 
-// defaultIdempotent 默认实现
+var (
+	// 请求任务标识
+	TKey = "easy-chat-idempotence-task-id"
 
-func ContentWithVal(ctx context.Context) context.Context {
-	return context.WithValue(ctx, Tkey, utils.NewUuid())
+	// 设置rpc调度中rpc请求的标识
+	DKey = "easy-chat-idempotence-dispatch-key"
+)
+
+func ContextWithVal(ctx context.Context) context.Context {
+	// 设置请求的id
+	return context.WithValue(ctx, TKey, utils.NewUuid())
 }
 
-func NewIdempotenceClient(idempotence Idempotence) grpc.UnaryClientInterceptor {
+// 客户端的拦截器
+func NewIdempotenceClient(idempotent Idempotent) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		identify := idempotence.Identify(ctx, method)
+		// 获取唯一的key
+		identify := idempotent.Identify(ctx, method)
+
+		// 在rpc请求中的头部信息
 		ctx = metadata.NewOutgoingContext(ctx, map[string][]string{
-			Dkey: {identify},
+			DKey: {identify},
 		})
+
+		// 请求
 		return invoker(ctx, method, req, reply, cc, opts...)
 	}
 }
 
-func NewIdempotenceServe(idempotence Idempotence) grpc.UnaryServerInterceptor {
+func NewIdempotenceServer(idempotent Idempotent) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-		identify := metadata.ValueFromIncomingContext(ctx, Dkey)
-		if len(identify) == 0 || !idempotence.IsIdempotentMethod(info.FullMethod) {
+		// 获取请求的id
+		identify := metadata.ValueFromIncomingContext(ctx, DKey)
+		if len(identify) == 0 || !idempotent.IsIdempotentMethod(info.FullMethod) {
+			// 不进行幂等性处理
 			return handler(ctx, req)
 		}
-		fmt.Println("start")
-		r, isAcquire := idempotence.TryAcquire(ctx, identify[0])
+
+		fmt.Println("----", "请求进入 幂等性处理 ", identify)
+
+		r, isAcquire := idempotent.TryAcquire(ctx, identify[0])
 		if isAcquire {
 			resp, err = handler(ctx, req)
-			if err != nil {
-				return
+			fmt.Println("---- 执行任务", identify)
+
+			if err := idempotent.SaveResp(ctx, identify[0], resp, err); err != nil {
+				return resp, err
 			}
-			err = idempotence.SaveResp(ctx, identify[0], resp, err)
-			if err != nil {
-				logx.Errorf("save resp error: %v", err)
-			}
+
 			return resp, err
 		}
+
+		// 任务已经有执行了
+		fmt.Println("----- 任务在执行", identify)
+
 		if r != nil {
+			fmt.Println("--- 任务已经执行完了 ", identify)
 			return r, nil
 		}
-		return nil, fmt.Errorf("idempotent")
+
+		// 可能还在执行
+		return nil, errors.WithStack(xerr.New(int(codes.DeadlineExceeded), fmt.Sprintf("存在其他任务在执行 id %v", identify[0])))
 	}
 }
 
@@ -79,14 +99,15 @@ var (
 )
 
 type defaultIdempotent struct {
-	Redis  *redis.Redis
-	Cache  *collection.Cache
+	// 获取和设置请求的id
+	*redis.Redis
+	// 注意存储
+	*collection.Cache
+	// 设置方法对幂等的支持
 	method map[string]bool
 }
 
-// NewDefaultIdempotent 创建默认幂等性实现
-func NewDefaultIdempotent(c redis.RedisConf) Idempotence {
-	// 创建缓存实例
+func NewDefaultIdempotent(c redis.RedisConf) Idempotent {
 	cache, err := collection.NewCache(60 * 60)
 	if err != nil {
 		panic(err)
@@ -101,26 +122,26 @@ func NewDefaultIdempotent(c redis.RedisConf) Idempotence {
 	}
 }
 
-// Identify 生成唯一标识
+// // 获取请求的标识
+// Identify(ctx context.Context, method string) string
 func (d *defaultIdempotent) Identify(ctx context.Context, method string) string {
-	// 获取api任务-请求id
-	id := ctx.Value(Tkey)
-
-	// 生成rpc请求任务id
+	id := ctx.Value(TKey)
+	// 让其生成请求id
 	rpcId := fmt.Sprintf("%v.%s", id, method)
-
 	return rpcId
 }
 
-// IsIdempotentMethod 判断是否是幂等性方法
+// // 是否支持幂等性
+// IsIdempotentMethod(fullMethod string) bool
 func (d *defaultIdempotent) IsIdempotentMethod(fullMethod string) bool {
 	return d.method[fullMethod]
 }
 
-// TryAcquire 尝试获取锁
+// // 幂等性的验证
+// TryAcquire(ctx context.Context, id string) (resp interface{}, isAcquire bool)
 func (d *defaultIdempotent) TryAcquire(ctx context.Context, id string) (resp interface{}, isAcquire bool) {
-	// 设置id，redis
-	retry, err := d.Redis.SetnxEx(id, "1", 60*60)
+	// 基于redis实现
+	retry, err := d.SetnxEx(id, "1", 60*60)
 	if err != nil {
 		return nil, false
 	}
@@ -129,14 +150,13 @@ func (d *defaultIdempotent) TryAcquire(ctx context.Context, id string) (resp int
 		return nil, true
 	}
 
-	// 从缓存中获取数据
 	resp, _ = d.Cache.Get(id)
-	return resp, retry
+	return resp, false
 }
 
-// SaveResp 保存响应
+// // 执行之后结果的保存
+// SaveResp(ctx context.Context, id string, resp interface{}, respErr error) error
 func (d *defaultIdempotent) SaveResp(ctx context.Context, id string, resp interface{}, respErr error) error {
-	// TODO implement me
 	d.Cache.Set(id, resp)
 	return nil
 }

@@ -2,7 +2,7 @@ syntax = "v1"
 
 info (
     title: "用户服务的实例对象"
-    author: "liumkssq"
+    author: "木兮老师"
 )
 
 type User {
@@ -35,6 +35,7 @@ type (
     LoginResp {
         Token   string `json:"token"`
         Expire  int64  `json:"expire"`
+        User    User   `json:"user"`
     }
 )
 

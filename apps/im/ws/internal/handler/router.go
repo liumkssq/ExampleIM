@@ -1,3 +1,8 @@
+/**
+ * @author: dn-jinmin/dn-jinmin
+ * @doc:
+ */
+
 package handler
 
 import (
@@ -8,7 +13,7 @@ import (
 	"github.com/liumkssq/easy-chat/apps/im/ws/websocket"
 )
 
-func RegisterHandler(srv *websocket.Server, svc *svc.ServiceContext) {
+func RegisterHandlers(srv *websocket.Server, svc *svc.ServiceContext) {
 	srv.AddRoutes([]websocket.Route{
 		{
 			Method:  "user.online",
@@ -17,6 +22,10 @@ func RegisterHandler(srv *websocket.Server, svc *svc.ServiceContext) {
 		{
 			Method:  "conversation.chat",
 			Handler: conversation.Chat(svc),
+		},
+		{
+			Method:  "conversation.markChat",
+			Handler: conversation.MarkRead(svc),
 		},
 		{
 			Method:  "push",

@@ -6,10 +6,9 @@ option go_package = "./im";
 
 // ------------ model -----------------
 
-// 聊天记录
 message ChatLog {
   string id = 1;
-  string conversationId = 2; // 会话id sendId and revcId caculate id
+  string conversationId = 2;
   string sendId = 3;
   string recvId = 4;
   int32 msgType = 5;
@@ -19,9 +18,8 @@ message ChatLog {
   bytes readRecords = 9;
 }
 
-// 会话
 message Conversation {
-  string conversationId = 1; // 会话id sendId and revcId caculate id
+  string conversationId = 1;
   int32 chatType = 2;
   string targetId = 3;
   bool isShow = 4;

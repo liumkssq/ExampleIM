@@ -1,10 +1,15 @@
 Name: user
 Host: 0.0.0.0
 Port: 8888
+
+Redisx:
+  Host: 127.0.0.1:16379
+  Pass: easy-chat
+
 UserRpc:
   Etcd:
     Hosts:
-      - 127.0.0.1:12379
+      - 127.0.0.1:3379
     Key: user.rpc
 
 JwtAuth:

@@ -4,10 +4,8 @@ import (
 	"context"
 	"github.com/jinzhu/copier"
 	"github.com/liumkssq/easy-chat/apps/user/models"
-
 	"github.com/liumkssq/easy-chat/apps/user/rpc/internal/svc"
 	"github.com/liumkssq/easy-chat/apps/user/rpc/user"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -25,21 +23,25 @@ func NewFindUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *FindUser
 	}
 }
 
+//var cint int
+
 func (l *FindUserLogic) FindUser(in *user.FindUserReq) (*user.FindUserResp, error) {
+	// todo: add your logic here and delete this line
+
 	var (
 		userEntitys []*models.Users
 		err         error
 	)
 
 	if in.Phone != "" {
-		userEntity, err := l.svcCtx.UserModels.FindByPhone(l.ctx, in.Phone)
+		userEntity, err := l.svcCtx.UsersModel.FindByPhone(l.ctx, in.Phone)
 		if err == nil {
 			userEntitys = append(userEntitys, userEntity)
 		}
 	} else if in.Name != "" {
-		userEntitys, err = l.svcCtx.UserModels.ListByName(l.ctx, in.Name)
+		userEntitys, err = l.svcCtx.UsersModel.ListByName(l.ctx, in.Name)
 	} else if len(in.Ids) > 0 {
-		userEntitys, err = l.svcCtx.UserModels.ListByIds(l.ctx, in.Ids)
+		userEntitys, err = l.svcCtx.UsersModel.ListByIds(l.ctx, in.Ids)
 	}
 
 	if err != nil {
@@ -47,9 +49,10 @@ func (l *FindUserLogic) FindUser(in *user.FindUserReq) (*user.FindUserResp, erro
 	}
 
 	var resp []*user.UserEntity
-	_ = copier.Copy(&resp, &userEntitys)
-
+	copier.Copy(&resp, &userEntitys)
+	//cint++
+	//fmt.Println("------ finduserlogic cint ", cint)
 	return &user.FindUserResp{
-		Users: resp,
+		User: resp,
 	}, nil
 }

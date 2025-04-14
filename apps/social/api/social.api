@@ -2,7 +2,7 @@ syntax = "v1"
 
 info (
 	title:  "社交服务的实例对象"
-	author: "liumkssq"
+	author: "木兮老师"
 )
 
 type (
@@ -139,6 +139,22 @@ type (
 	}
 )
 
+type (
+	FriendsOnlineReq  {}
+	FriendsOnlineResp {
+		OnlineList map[string]bool `json:"onLineList"`
+	}
+)
+
+type (
+	GroupUserOnlineReq {
+		GroupId string `json:"group_id,omitempty"`
+	}
+	GroupUserOnlineResp {
+		OnlineList map[string]bool `json:"onLineList"`
+	}
+)
+
 @server (
 	prefix: v1/social
 	group:  friend
@@ -160,12 +176,17 @@ service social {
 	@doc "好友列表"
 	@handler friendList
 	get /friends (FriendListReq) returns (FriendListResp)
+
+	@doc "好友在线情况"
+	@handler friendsOnline
+	get /friends/online (FriendsOnlineReq) returns (FriendsOnlineResp)
 }
 
 @server (
-	prefix: v1/social
-	group:  group
-	jwt:    JwtAuth
+	prefix:     v1/social
+	group:      group
+	jwt:        JwtAuth
+	middleware: IdempotenceMiddleware,LimitMiddleware
 )
 service social {
 	@doc "创群"
@@ -191,5 +212,9 @@ service social {
 	@doc "成员列表列表"
 	@handler groupUserList
 	get /group/users (GroupUserListReq) returns (GroupUserListResp)
+
+	@doc "群在线用户"
+	@handler groupUserOnline
+	get /group/users/online (GroupUserOnlineReq) returns (GroupUserOnlineResp)
 }
 

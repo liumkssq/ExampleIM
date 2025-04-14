@@ -3,21 +3,20 @@ package logic
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"github.com/liumkssq/easy-chat/apps/user/models"
+	"github.com/liumkssq/easy-chat/apps/user/rpc/internal/svc"
+	"github.com/liumkssq/easy-chat/apps/user/rpc/user"
 	"github.com/liumkssq/easy-chat/pkg/ctxdata"
 	"github.com/liumkssq/easy-chat/pkg/encrypt"
 	"github.com/liumkssq/easy-chat/pkg/wuid"
-	"github.com/pkg/errors"
 	"time"
-
-	"github.com/liumkssq/easy-chat/apps/user/rpc/internal/svc"
-	"github.com/liumkssq/easy-chat/apps/user/rpc/user"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
 var (
-	ErrPhoneIsRegister = errors.New("手机号已经注册")
+	ErrPhoneIsRegister = errors.New("手机号已经注册过")
 )
 
 type RegisterLogic struct {
@@ -35,16 +34,20 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 }
 
 func (l *RegisterLogic) Register(in *user.RegisterReq) (*user.RegisterResp, error) {
+	// todo: add your logic here and delete this line
 
-	userEntiry, err := l.svcCtx.UserModels.FindByPhone(l.ctx, in.Phone)
+	// 1. 验证用户是否注册，根据手机号码验证
+	userEntity, err := l.svcCtx.UsersModel.FindByPhone(l.ctx, in.Phone)
 	if err != nil && err != models.ErrNotFound {
 		return nil, err
 	}
-	if userEntiry != nil {
+
+	if userEntity != nil {
 		return nil, ErrPhoneIsRegister
 	}
 
-	userEntiry = &models.Users{
+	// 定义用户数据
+	userEntity = &models.Users{
 		Id:       wuid.GenUid(l.svcCtx.Config.Mysql.DataSource),
 		Avatar:   in.Avatar,
 		Nickname: in.Nickname,
@@ -54,29 +57,31 @@ func (l *RegisterLogic) Register(in *user.RegisterReq) (*user.RegisterResp, erro
 			Valid: true,
 		},
 	}
-	//todo 密码加密
+
 	if len(in.Password) > 0 {
-		genPasswod, err := encrypt.GenPasswordHash([]byte(in.Password))
+		genPassword, err := encrypt.GenPasswordHash([]byte(in.Password))
 		if err != nil {
 			return nil, err
 		}
-		userEntiry.Password = sql.NullString{
-			String: string(genPasswod),
+		userEntity.Password = sql.NullString{
+			String: string(genPassword),
 			Valid:  true,
 		}
 	}
 
-	_, err = l.svcCtx.UserModels.Insert(l.ctx, userEntiry)
+	_, err = l.svcCtx.UsersModel.Insert(l.ctx, userEntity)
 	if err != nil {
 		return nil, err
 	}
-	now := time.Now().Unix()
 
-	token, err := ctxdata.GetJwtToken(l.svcCtx.Config.Jwt.AccessSecret,
-		now, l.svcCtx.Config.Jwt.AccessExpire, userEntiry.Id)
+	// 生成token
+	now := time.Now().Unix()
+	token, err := ctxdata.GetJwtToken(l.svcCtx.Config.Jwt.AccessSecret, now, l.svcCtx.Config.Jwt.AccessExpire,
+		userEntity.Id)
 	if err != nil {
 		return nil, err
 	}
+
 	return &user.RegisterResp{
 		Token:  token,
 		Expire: now + l.svcCtx.Config.Jwt.AccessExpire,

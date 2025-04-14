@@ -2,7 +2,7 @@ syntax = "v1"
 
 info (
 	title:  "用户服务的实例对象"
-	author: "liumkssq"
+	author: "木兮老师"
 )
 
 import (
